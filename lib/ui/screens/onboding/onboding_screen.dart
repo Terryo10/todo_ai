@@ -84,7 +84,7 @@ class _OnbodingScreenState extends State<OnbodingScreen> {
                           ),
                           SizedBox(height: 16),
                           Text(
-                            "Smart way to focus on necessary thing for that specific time.",
+                            "Smart way to focus on necessary things for that specific time.",
                           ),
                         ],
                       ),
