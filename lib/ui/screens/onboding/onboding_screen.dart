@@ -74,9 +74,9 @@ class _OnbodingScreenState extends State<OnbodingScreen> {
                       child: Column(
                         children: [
                           Text(
-                            "Welcome to our TODO AI APP",
+                            "WELCOME TO OUR TODO AI APP",
                             style: TextStyle(
-                              fontSize: 60,
+                              fontSize: 50,
                               fontWeight: FontWeight.w700,
                               fontFamily: "Poppins",
                               height: 1.2,
