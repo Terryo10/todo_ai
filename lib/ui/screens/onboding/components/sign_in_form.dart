@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:rive/rive.dart';
 import '../../entryPoint/entry_point.dart';
+import '../../home/home_screen.dart';
 
 class SignInForm extends StatefulWidget {
   const SignInForm({
@@ -150,6 +151,12 @@ class _SignInFormState extends State<SignInForm> {
                 padding: const EdgeInsets.only(top: 8, bottom: 24),
                 child: ElevatedButton.icon(
                   onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => HomePage(),
+                      ),
+                    );
                     singIn(context);
                   },
                   style: ElevatedButton.styleFrom(
