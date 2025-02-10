@@ -2,11 +2,11 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
-import '../../constants.dart';
-import '../../screens/home/home_screen.dart';
-import '../../utils/rive_utils.dart';
+import '../../../constants.dart';
+import '../home/home_screen.dart';
+import '../../../utils/rive_utils.dart';
 
-import '../../model/menu.dart';
+import '../../../model/menu.dart';
 import 'components/btm_nav_item.dart';
 import 'components/menu_btn.dart';
 import 'components/side_bar.dart';

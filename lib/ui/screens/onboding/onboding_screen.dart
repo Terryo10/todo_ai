@@ -74,7 +74,7 @@ class _OnbodingScreenState extends State<OnbodingScreen> {
                       child: Column(
                         children: [
                           Text(
-                            "Learn design & code",
+                            "Welcome to our TODO AI APP",
                             style: TextStyle(
                               fontSize: 60,
                               fontWeight: FontWeight.w700,
@@ -84,7 +84,7 @@ class _OnbodingScreenState extends State<OnbodingScreen> {
                           ),
                           SizedBox(height: 16),
                           Text(
-                            "Don’t skip design. Learn design and code, by building real apps with Flutter and Swift. Complete courses about the best tools.",
+                            "Smart way to focus on necessary thing for that specific time.",
                           ),
                         ],
                       ),
@@ -121,7 +121,7 @@ class _OnbodingScreenState extends State<OnbodingScreen> {
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 24),
                       child: Text(
-                          "Purchase includes access to 30+ courses, 240+ premium tutorials, 120+ hours of videos, source files and certificates."),
+                          "Purchase includes access to adding more than 2 users on the same task."),
                     )
                   ],
                 ),
