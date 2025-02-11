@@ -15,4 +15,8 @@ class AuthRepository {
   Future<void> saveToken(String token) async {
     await storage.write(key: 'token', value: token);
   }
+
+  Future<void> loginWithGoogle()async {
+    await authProvider.loginWithGoogle();
+  }
 }

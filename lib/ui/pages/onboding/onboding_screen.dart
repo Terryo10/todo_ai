@@ -105,14 +105,10 @@ class _OnbodingScreenState extends State<OnbodingScreen> {
                               isShowSignInDialog = true;
                             });
 
-                            showCustomDialog(
+                            showCustomSignInDialog(
                               // ignore: use_build_context_synchronously
                               context,
-                              onValue: (_) {
-                                setState(() {
-                                  isShowSignInDialog = false;
-                                });
-                              },
+                            
                             );
                           },
                         );

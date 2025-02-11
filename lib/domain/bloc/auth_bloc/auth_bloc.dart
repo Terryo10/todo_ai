@@ -20,5 +20,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       cacheBloc.add(AppStarted());
       emit(AuthInitial());
     });
+
+      on<LoginWithGoogle>((event, emit){
+        
+      });
   }
+
+
 }
