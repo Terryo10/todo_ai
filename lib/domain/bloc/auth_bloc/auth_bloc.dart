@@ -22,6 +22,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     });
 
       on<LoginWithGoogle>((event, emit){
+        print('fired google');
         
       });
   }
