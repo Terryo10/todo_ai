@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../model/menu.dart';
+import '../../../../domain/model/menu.dart';
 import '../../../../utils/rive_utils.dart';
 import 'info_card.dart';
 import 'side_menu.dart';

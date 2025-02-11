@@ -11,11 +11,7 @@ final class AuthInitial extends AuthState {}
 
 class AuthLoadingState extends AuthState {}
 
-class AuthAuthenticatedState extends AuthState {
-  final dynamic loginResponseModel;
-
-  const AuthAuthenticatedState(this.loginResponseModel);
-}
+class AuthAuthenticatedState extends AuthState {}
 
 class AuthErrorState extends AuthState {
   final String message;
@@ -23,11 +19,6 @@ class AuthErrorState extends AuthState {
   const AuthErrorState(this.message);
 }
 
-class AuthRegistrationSuccessState extends AuthState {
-  final dynamic registerResponseModel;
-  const AuthRegistrationSuccessState({
-    required this.registerResponseModel,
-  });
-}
+class AuthRegistrationSuccessState extends AuthState {}
 
 class AuthVerificationSuccessState extends AuthState {}

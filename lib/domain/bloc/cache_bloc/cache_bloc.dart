@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
-import '../../../repositories/cache_repository/cache_repository.dart';
+import '../../repositories/cache_repository/cache_repository.dart';
 import '../../../static/app_strings.dart';
 
 part 'cache_event.dart';

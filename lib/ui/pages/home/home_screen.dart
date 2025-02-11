@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
-import '../../../model/course.dart';
+import '../../../domain/model/course.dart';
 import 'components/course_card.dart';
 import 'components/secondary_course_card.dart';
 

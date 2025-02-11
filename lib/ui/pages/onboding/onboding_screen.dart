@@ -74,7 +74,7 @@ class _OnbodingScreenState extends State<OnbodingScreen> {
                       child: Column(
                         children: [
                           Text(
-                            "WELCOME TO OUR TODO AI APP",
+                            "Task Whiz",
                             style: TextStyle(
                               fontSize: 50,
                               fontWeight: FontWeight.w700,
@@ -84,8 +84,7 @@ class _OnbodingScreenState extends State<OnbodingScreen> {
                           ),
                           SizedBox(height: 16),
                           Text(
-                            "Smart way to focus on necessary things for that specific time.",
-                          ),
+                              'Your smart AI task assistant. Just describe what you need, and TaskWhiz suggests the perfect tasks\n— keeping you organized and on track effortlessly.')
                         ],
                       ),
                     ),
@@ -93,36 +92,36 @@ class _OnbodingScreenState extends State<OnbodingScreen> {
                     AnimatedBtn(
                       btnAnimationController: _btnAnimationController,
                       press: () {
+                        if (isShowSignInDialog)return; 
+
                         _btnAnimationController.isActive = true;
 
                         Future.delayed(
-                          const Duration(milliseconds: 800),
+                          const Duration(milliseconds: 500),
                           () {
+                            if (!mounted || isShowSignInDialog) return; // Check again before launching
+
                             setState(() {
                               isShowSignInDialog = true;
                             });
-                            if (!context.mounted) return;
+
                             showCustomDialog(
+                              // ignore: use_build_context_synchronously
                               context,
-                              onValue: (_) {},
+                              onValue: (_) {
+                                setState(() {
+                                  isShowSignInDialog = false;
+                                });
+                              },
                             );
-                            // showCustomDialog(
-                            //   context,
-                            //   onValue: (_) {
-                            //     setState(() {
-                            //       isShowSignInDialog = false;
-                            //     });
-                            //   },
-                            // );
                           },
                         );
                       },
                     ),
                     const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24),
-                      child: Text(
-                          "Purchase includes access to adding more than 2 users on the same task."),
-                    )
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: Text(
+                            '🔹 Smart Suggestions – AI auto-generates tasks.\n📅 Stay Organized – Prioritize with ease.\n⏳ Boost Productivity – Streamline your workflow.'))
                   ],
                 ),
               ),

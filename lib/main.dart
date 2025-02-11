@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'routes/router.dart';
-import 'state/app_blocs.dart';
-import 'state/app_repositories.dart';
+import 'domain/app_blocs.dart';
+import 'domain/app_repositories.dart';
 
 void main() {
   final appRouter = AppRouter();
