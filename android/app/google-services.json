@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "446296947297",
+    "project_id": "taskwhiz-11cbf",
+    "storage_bucket": "taskwhiz-11cbf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:446296947297:android:441b06db2f2e94c3d90820",
+        "android_client_info": {
+          "package_name": "com.example.todo_ai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_mf_gohPfREpzpTAitSACmHo7WBFfQm0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

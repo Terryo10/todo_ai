@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
+import 'package:firebase_core/firebase_core.dart';
+import 'package:todo_ai/firebase_options.dart';
 import 'routes/router.dart';
 import 'domain/app_blocs.dart';
 import 'domain/app_repositories.dart';
 
-void main() {
+void main() async{
+   WidgetsFlutterBinding.ensureInitialized();
   final appRouter = AppRouter();
   const FlutterSecureStorage storage = FlutterSecureStorage();
-  //firebase for notifications
+    await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // Configure app
   var appConfig = AppRepositories(
