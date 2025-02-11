@@ -8,5 +8,6 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: OnbodingRoute.page, initial: true),
         AutoRoute(page: LandingRoute.page),
         AutoRoute(page: HomeRoute.page),
+        AutoRoute(page: EntryPoint.page),
       ];
 }

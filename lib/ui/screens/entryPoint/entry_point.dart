@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
 import '../../../constants.dart';
@@ -11,6 +12,7 @@ import 'components/btm_nav_item.dart';
 import 'components/menu_btn.dart';
 import 'components/side_bar.dart';
 
+@RoutePage()
 class EntryPoint extends StatefulWidget {
   const EntryPoint({super.key});
 
