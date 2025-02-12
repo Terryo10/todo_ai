@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../repositories/auth_repository/auth_repository.dart';
 import '../cache_bloc/cache_bloc.dart';
@@ -10,6 +11,8 @@ part 'auth_state.dart';
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
   final CacheBloc cacheBloc;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  GoogleSignInAccount? _currentUser;
 
   AuthBloc({
     required this.authRepository,
@@ -21,11 +24,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthInitial());
     });
 
-      on<LoginWithGoogle>((event, emit){
-        print('fired google');
-        
-      });
+    on<LoginWithGoogle>((event, emit) async {
+      print('fired google');
+      try {
+        await _googleSignIn.signIn();
+      } catch (error) {
+        print('Sign-in error: $error');
+      }
+    });
   }
-
-
 }

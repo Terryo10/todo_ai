@@ -17,7 +17,7 @@ void showCustomSignInDialog(BuildContext context) {
       return BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticatedState) {
-           context.navigateTo(EntryPointRoute());
+            context.navigateTo(EntryPointRoute());
           } else if (state is AuthErrorState) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -78,14 +78,6 @@ void showCustomSignInDialog(BuildContext context) {
                   ),
                   const Spacer(),
                   const Spacer(),
-                  _SignInButton(
-                    icon: "assets/icons/google.svg",
-                    text: "Continue with Google",
-                    backgroundColor: Colors.white,
-                    textColor: Colors.black87,
-                    borderColor: Colors.grey.shade300,
-                    authEvent: LoginWithGoogle(),
-                  ),
                   _SignInButton(
                     icon: "assets/icons/facebook.svg",
                     text: "Continue with Facebook",
@@ -149,6 +141,7 @@ class _FeatureItem extends StatelessWidget {
     );
   }
 }
+
 class _SignInButton extends StatelessWidget {
   final String icon;
   final String text;
@@ -172,16 +165,16 @@ class _SignInButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
-        final bool isLoading = state is AuthLoadingState && 
+        final bool isLoading = state is AuthLoadingState &&
             ((authEvent is LoginWithGoogle && icon.contains('google')) ||
-             (authEvent is LoginWithFacebook && icon.contains('facebook')) ||
-             (authEvent is LoginWithApple && icon.contains('apple')));
+                (authEvent is LoginWithFacebook && icon.contains('facebook')) ||
+                (authEvent is LoginWithApple && icon.contains('apple')));
 
         return Padding(
           padding: const EdgeInsets.only(top: 12),
           child: ElevatedButton(
-            onPressed: isLoading 
-                ? null 
+            onPressed: isLoading
+                ? null
                 : () {
                     if (authEvent != null) {
                       BlocProvider.of<AuthBloc>(context).add(authEvent!);
@@ -192,9 +185,9 @@ class _SignInButton extends StatelessWidget {
               minimumSize: const Size(double.infinity, 50),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-                side: borderColor != null 
-                  ? BorderSide(color: borderColor!) 
-                  : BorderSide.none,
+                side: borderColor != null
+                    ? BorderSide(color: borderColor!)
+                    : BorderSide.none,
               ),
               elevation: 0,
             ),
