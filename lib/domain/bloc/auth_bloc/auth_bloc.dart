@@ -21,11 +21,28 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthInitial());
     });
 
-      on<LoginWithGoogle>((event, emit){
-        print('fired google');
-        
-      });
+    on<LoginWithGoogle>((event, emit) async {
+      try {
+        emit(AuthLoadingState());
+        final result = await authRepository.loginWithGoogle();
+
+        emit(AuthAuthenticatedState(
+          userId: result?.uid ?? '',
+          email: result?.email,
+          displayName: result?.displayName,
+          provider: 'google',
+        ));
+      } catch (e) {
+        emit(AuthErrorState('Google sign in error: ${e.toString()}'));
+      }
+    });
+
+    on<LoginWithApple>((event, emit) {
+      print('fired apple');
+    });
+
+    on<LoginWithFacebook>((event, emit) {
+      print('fired facebook');
+    });
   }
-
-
 }

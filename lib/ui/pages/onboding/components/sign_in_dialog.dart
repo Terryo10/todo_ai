@@ -6,7 +6,7 @@ import 'package:todo_ai/routes/router.gr.dart';
 
 import '../../../../domain/bloc/auth_bloc/auth_bloc.dart';
 
-void showCustomSignInDialog(BuildContext context) {
+void showCustomSignInDialog(BuildContext context, {required VoidCallback onDismiss}) {
   showGeneralDialog(
     context: context,
     barrierLabel: "Barrier",
@@ -17,7 +17,7 @@ void showCustomSignInDialog(BuildContext context) {
       return BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticatedState) {
-           context.navigateTo(EntryPointRoute());
+            context.navigateTo(EntryPointRoute());
           } else if (state is AuthErrorState) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -29,87 +29,106 @@ void showCustomSignInDialog(BuildContext context) {
           }
         },
         child: Center(
-          child: Container(
-            height: 520,
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Scaffold(
-              backgroundColor: Colors.transparent,
-              body: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    "Unlock Smart Productivity!",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E1E1E),
+          child: WillPopScope(
+            onWillPop: () async {
+              onDismiss();
+              return true;
+            },
+            child: Material(
+              type: MaterialType.transparency,
+              child: Container(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.8,
+                  maxWidth: MediaQuery.of(context).size.width - 32,
+                ),
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      "Unlock Smart Productivity!",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E1E1E),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  _FeatureItem(
-                    icon: "assets/icons/ai.svg",
-                    text: "AI-Generated Tasks",
-                    iconColor: Color(0xFF6C63FF),
-                  ),
-                  _FeatureItem(
-                    icon: "assets/icons/reminder.svg",
-                    text: "Smart Reminders",
-                    iconColor: Color(0xFF4CAF50),
-                  ),
-                  _FeatureItem(
-                    icon: "assets/icons/organize.svg",
-                    text: "Effortless Organization",
-                    iconColor: Color(0xFF2196F3),
-                  ),
-                  _FeatureItem(
-                    icon: "assets/icons/sync.svg",
-                    text: "Sync Across Devices",
-                    iconColor: Color(0xFF9C27B0),
-                  ),
-                  _FeatureItem(
-                    icon: "assets/icons/share.svg",
-                    text: "Share Tasks Easily",
-                    iconColor: Color(0xFFFF9800),
-                  ),
-                  const Spacer(),
-                  const Spacer(),
-                  _SignInButton(
-                    icon: "assets/icons/google.svg",
-                    text: "Continue with Google",
-                    backgroundColor: Colors.white,
-                    textColor: Colors.black87,
-                    borderColor: Colors.grey.shade300,
-                    authEvent: LoginWithGoogle(),
-                  ),
-                  _SignInButton(
-                    icon: "assets/icons/facebook.svg",
-                    text: "Continue with Facebook",
-                    backgroundColor: const Color(0xFF1877F2),
-                    textColor: Colors.white,
-                    iconColor: Colors.white,
-                    authEvent: LoginWithFacebook(),
-                  ),
-                  _SignInButton(
-                    icon: "assets/icons/apple.svg",
-                    text: "Continue with Apple",
-                    backgroundColor: Colors.black,
-                    textColor: Colors.white,
-                    iconColor: Colors.white,
-                    authEvent: LoginWithApple(),
-                  ),
-                ],
+                    const SizedBox(height: 24),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _FeatureItem(
+                              icon: "assets/icons/ai.svg",
+                              text: "AI-Generated Tasks",
+                              iconColor: Color(0xFF6C63FF),
+                            ),
+                            _FeatureItem(
+                              icon: "assets/icons/reminder.svg",
+                              text: "Smart Reminders",
+                              iconColor: Color(0xFF4CAF50),
+                            ),
+                            _FeatureItem(
+                              icon: "assets/icons/organize.svg",
+                              text: "Effortless Organization",
+                              iconColor: Color(0xFF2196F3),
+                            ),
+                            _FeatureItem(
+                              icon: "assets/icons/sync.svg",
+                              text: "Sync Across Devices",
+                              iconColor: Color(0xFF9C27B0),
+                            ),
+                            _FeatureItem(
+                              icon: "assets/icons/share.svg",
+                              text: "Share Tasks Easily",
+                              iconColor: Color(0xFFFF9800),
+                            ),
+                            
+                            _SignInButton(
+                              icon: "assets/icons/google.svg",
+                              text: "Continue with Google",
+                              backgroundColor: Colors.white,
+                              textColor: Colors.black87,
+                              borderColor: Colors.grey.shade300,
+                              authEvent: LoginWithGoogle(),
+                            ),
+                            _SignInButton(
+                              icon: "assets/icons/facebook.svg",
+                              text: "Continue with Facebook",
+                              backgroundColor: const Color(0xFF1877F2),
+                              textColor: Colors.white,
+                              iconColor: Colors.white,
+                              authEvent: LoginWithFacebook(),
+                            ),
+                            _SignInButton(
+                              icon: "assets/icons/apple.svg",
+                              text: "Continue with Apple",
+                              backgroundColor: Colors.black,
+                              textColor: Colors.white,
+                              iconColor: Colors.white,
+                              authEvent: LoginWithApple(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
       );
     },
-  );
+  ).then((_) {
+    onDismiss();
+  });
 }
 
 class _FeatureItem extends StatelessWidget {

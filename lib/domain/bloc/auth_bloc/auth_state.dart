@@ -11,14 +11,25 @@ final class AuthInitial extends AuthState {}
 
 class AuthLoadingState extends AuthState {}
 
-class AuthAuthenticatedState extends AuthState {}
+class AuthAuthenticatedState extends AuthState {
+  final String userId;
+  final String? email;
+  final String? displayName;
+  final String provider;
+
+  const AuthAuthenticatedState({
+    required this.userId,
+    this.email,
+    this.displayName,
+    required this.provider,
+  });
+
+  @override
+  List<Object> get props => [userId, provider];
+}
 
 class AuthErrorState extends AuthState {
   final String message;
 
   const AuthErrorState(this.message);
 }
-
-class AuthRegistrationSuccessState extends AuthState {}
-
-class AuthVerificationSuccessState extends AuthState {}

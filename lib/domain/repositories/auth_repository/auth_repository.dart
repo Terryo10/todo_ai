@@ -1,4 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:todo_ai/domain/model/user_model.dart';
 
 import 'auth_provider.dart';
 
@@ -16,7 +17,15 @@ class AuthRepository {
     await storage.write(key: 'token', value: token);
   }
 
-  Future<void> loginWithGoogle()async {
-    await authProvider.loginWithGoogle();
+  Future<UserModel?> loginWithGoogle() async {
+    return await authProvider.signInWithGoogle();
+  }
+
+  Future<UserModel?> loginWithFacebook() async {
+    return await authProvider.signInWithFacebook();
+  }
+
+  Future<UserModel?> loginWithApple() async {
+    return await authProvider.signInWithApple();
   }
 }
