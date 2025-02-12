@@ -92,23 +92,26 @@ class _OnbodingScreenState extends State<OnbodingScreen> {
                     AnimatedBtn(
                       btnAnimationController: _btnAnimationController,
                       press: () {
-                        if (isShowSignInDialog)return; 
+                        if (isShowSignInDialog) return;
 
                         _btnAnimationController.isActive = true;
 
                         Future.delayed(
                           const Duration(milliseconds: 800),
                           () {
-                            if (!mounted || isShowSignInDialog) return; // Check again before launching
+                            if (!mounted || isShowSignInDialog) return;
 
                             setState(() {
                               isShowSignInDialog = true;
                             });
 
                             showCustomSignInDialog(
-                              // ignore: use_build_context_synchronously
                               context,
-                            
+                              onDismiss: () {
+                                setState(() {
+                                  isShowSignInDialog = false;
+                                });
+                              },
                             );
                           },
                         );
