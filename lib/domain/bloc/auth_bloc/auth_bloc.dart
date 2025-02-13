@@ -23,8 +23,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<LoginWithGoogle>((event, emit) async {
       try {
+         print('fired goog');
         emit(AuthLoadingState());
         final result = await authRepository.loginWithGoogle();
+        print('fired goog kkkkkkk${result.toString()}');
 
         emit(AuthAuthenticatedState(
           userId: result?.uid ?? '',
@@ -33,6 +35,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           provider: 'google',
         ));
       } catch (e) {
+         print('fired goog $e');
         emit(AuthErrorState('Google sign in error: ${e.toString()}'));
       }
     });
@@ -41,8 +44,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       print('fired apple');
     });
 
-    on<LoginWithFacebook>((event, emit) {
-      print('fired facebook');
+    on<LoginWithFacebook>((event, emit) async{
+      try {
+         print('fired ffaa');
+        emit(AuthLoadingState());
+        final result = await authRepository.loginWithFacebook();
+        print('fired faaa kkkkkkk${result.toString()}');
+
+        emit(AuthAuthenticatedState(
+          userId: result?.uid ?? '',
+          email: result?.email,
+          displayName: result?.displayName,
+          provider: 'facebook',
+        ));
+      } catch (e) {
+         print('fired faceboo $e');
+        emit(AuthErrorState('faceboo sign in error: ${e.toString()}'));
+      }
     });
   }
 }
