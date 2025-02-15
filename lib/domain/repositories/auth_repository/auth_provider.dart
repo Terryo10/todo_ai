@@ -60,6 +60,7 @@ class AuthProvider {
       if (userCredential.user == null) return null;
 
       final user = _userFromFirebase(userCredential.user!, 'google');
+      print('goog kkkk $user');
       await _saveUserToFirestore(user);
       return user;
     } catch (e) {
