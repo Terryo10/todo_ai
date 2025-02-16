@@ -5,7 +5,7 @@
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
-		<string>Todo Ai</string>
+		<string>Task Whiz</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
@@ -57,12 +57,13 @@
 
 		<key>GIDClientID</key>
 		<string>1446296947297-sj6cb653v4gu7p82ejqhqsakokl9raoq.apps.googleusercontent.com</string>
+		
 		<key>FacebookAppID</key>
 		<string>601055342746611</string>
 		<key>FacebookClientToken</key>
 		<string>b60ca103422c5b070c424c40a149b4f8</string>
 		<key>FacebookDisplayName</key>
-		<string>YOUR_APP_NAME</string>
+		<string>TaskWhiz</string>
 
 		<key>CFBundleURLTypes</key>
 		<array>

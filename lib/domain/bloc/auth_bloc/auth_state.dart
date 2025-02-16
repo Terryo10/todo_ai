@@ -13,14 +13,14 @@ class AuthLoadingState extends AuthState {}
 
 class AuthAuthenticatedState extends AuthState {
   final String userId;
-  final String? email;
-  final String? displayName;
+  final String email;
+  final String displayName;
   final String provider;
 
   const AuthAuthenticatedState({
     required this.userId,
-    this.email,
-    this.displayName,
+    required this.email,
+    required this.displayName,
     required this.provider,
   });
 
