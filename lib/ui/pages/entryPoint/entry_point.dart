@@ -153,7 +153,7 @@ class _EntryPointState extends State<EntryPointPage>
               ],
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ...List.generate(
                   bottomNavItems.length,
@@ -162,6 +162,21 @@ class _EntryPointState extends State<EntryPointPage>
                     return BtmNavItem(
                       navBar: navBar,
                       press: () {
+                        switch (selectedBottonNav.title) {
+                          case 'Profile':
+                            setState(() {
+                              isMenuOpenInput.value = false;
+                            });
+
+                            _animationController.forward();
+
+                            setState(
+                              () {
+                                isSideBarOpen = true;
+                              },
+                            );
+                            break;
+                        }
                         RiveUtils.chnageSMIBoolState(navBar.rive.status!);
                         updateSelectedBtmNav(navBar);
                       },
