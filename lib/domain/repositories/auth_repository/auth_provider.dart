@@ -1,10 +1,11 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 
 import '../../model/user_model.dart';
 
@@ -25,6 +26,14 @@ class AuthProvider {
 
   Future<void> saveToken(String token) async {
     await storage.write(key: 'auth_token', value: token);
+  }
+
+  Future<void> saveUserToStorage(UserModel user) async {
+    await storage.write(key: 'user', value: user.toString());
+  }
+
+  Future<UserModel?> getUserFromStorage() async {
+    return jsonDecode(await storage.read(key: 'user') ?? '');
   }
 
   Future<String?> getToken() async {
@@ -60,8 +69,9 @@ class AuthProvider {
       if (userCredential.user == null) return null;
 
       final user = _userFromFirebase(userCredential.user!, 'google');
-      print('goog kkkk $user');
+      print('goog kkkk ${user.email} ${user.uid} ${user.displayName}');
       await _saveUserToFirestore(user);
+      await saveUserToStorage(user);
       return user;
     } catch (e) {
       print('Google sign in error: $e');
@@ -111,11 +121,11 @@ class AuthProvider {
 
       if (result.status != LoginStatus.success) {
         print(result.message);
-        throw(result.message ?? '');
+        throw (result.message ?? '');
       }
 
       final AccessToken? accessToken = result.accessToken;
-      if (accessToken == null)  throw(result.message ?? '');
+      if (accessToken == null) throw (result.message ?? '');
 
       final OAuthCredential credential = FacebookAuthProvider.credential(
         accessToken.tokenString,
@@ -123,13 +133,13 @@ class AuthProvider {
 
       final userCredential =
           await firebaseAuth.signInWithCredential(credential);
-      if (userCredential.user == null) throw(result.message ?? '');
+      if (userCredential.user == null) throw (result.message ?? '');
 
       final user = _userFromFirebase(userCredential.user!, 'facebook');
       await _saveUserToFirestore(user);
       return user;
     } catch (e) {
-      throw(e.toString());
+      throw (e.toString());
     }
   }
 
@@ -173,10 +183,10 @@ class AuthProvider {
     });
   }
 
-    Future<void> _saveUserToFirestore(UserModel user) async {
+  Future<void> _saveUserToFirestore(UserModel user) async {
     await firestore.collection('users').doc(user.uid).set(
-      user.toMap(),
-      SetOptions(merge: true),
-    );
+          user.toMap(),
+          SetOptions(merge: true),
+        );
   }
 }

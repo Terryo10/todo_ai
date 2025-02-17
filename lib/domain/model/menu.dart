@@ -52,6 +52,13 @@ List<Menu> sidebarMenus2 = [
         artboard: "BELL",
         stateMachineName: "BELL_Interactivity"),
   ),
+  Menu(
+    title: "Log Out",
+    rive: RiveModel(
+        src: "assets/RiveAssets/icons.riv",
+        artboard: "Door",
+        stateMachineName: "BELL_Interactivity"),
+  ),
 ];
 
 List<Menu> bottomNavItems = [

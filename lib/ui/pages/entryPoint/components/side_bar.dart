@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:todo_ai/domain/bloc/auth_bloc/auth_bloc.dart';
 
 import '../../../../domain/model/menu.dart';
 import '../../../../utils/rive_utils.dart';
@@ -31,9 +33,19 @@ class _SideBarState extends State<SideBar> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const InfoCard(
-                name: "Abu Anwar",
-                bio: "YouTuber",
+              BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, state) {
+                  if (state is AuthAuthenticatedState) {
+                    return InfoCard(
+                      name: state.displayName,
+                      bio: state.email,
+                    );
+                  }
+                  return const InfoCard(
+                    name: "Unknown User",
+                    bio: ".....",
+                  );
+                },
               ),
               Padding(
                 padding: const EdgeInsets.only(left: 24, top: 32, bottom: 16),
@@ -73,10 +85,15 @@ class _SideBarState extends State<SideBar> {
                     menu: menu,
                     selectedMenu: selectedSideMenu,
                     press: () {
-                      RiveUtils.chnageSMIBoolState(menu.rive.status!);
-                      setState(() {
-                        selectedSideMenu = menu;
-                      });
+                      if (menu.title.contains('Log')) {
+                        BlocProvider.of<AuthBloc>(context).add(LogOut());
+                        Navigator.of(context).pop();
+                      } else {
+                        RiveUtils.chnageSMIBoolState(menu.rive.status!);
+                        setState(() {
+                          selectedSideMenu = menu;
+                        });
+                      }
                     },
                     riveOnInit: (artboard) {
                       menu.rive.status = RiveUtils.getRiveInput(artboard,
