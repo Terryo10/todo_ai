@@ -33,6 +33,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           provider: 'google',
         ));
       } catch (e) {
+        print(e.toString());
 
         emit(AuthErrorState('Google sign in error: ${e.toString()}'));
       }
