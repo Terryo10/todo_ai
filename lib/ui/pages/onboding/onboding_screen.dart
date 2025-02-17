@@ -69,19 +69,11 @@ class _OnbodingScreenState extends State<OnbodingScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Spacer(),
-                    const SizedBox(
+                     SizedBox(
                       width: 260,
                       child: Column(
                         children: [
-                          Text(
-                            "Task Whiz",
-                            style: TextStyle(
-                              fontSize: 50,
-                              fontWeight: FontWeight.w700,
-                              fontFamily: "Poppins",
-                              height: 1.2,
-                            ),
-                          ),
+                           Image.asset('assets/icons/vibes.png'),
                           SizedBox(height: 16),
                           Text(
                               'Your smart AI task assistant. Just describe what you need, and TaskWhiz suggests the perfect tasks\n— keeping you organized and on track effortlessly.')
