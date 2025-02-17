@@ -1,6 +1,5 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../repositories/auth_repository/auth_repository.dart';
 import '../cache_bloc/cache_bloc.dart';
@@ -11,8 +10,6 @@ part 'auth_state.dart';
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
   final CacheBloc cacheBloc;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
-  GoogleSignInAccount? _currentUser;
 
   AuthBloc({
     required this.authRepository,
@@ -26,19 +23,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<LoginWithGoogle>((event, emit) async {
       try {
-        print('fired goog');
         emit(AuthLoadingState());
         final result = await authRepository.loginWithGoogle();
-        print('fired goog kkkkkkk${result.toString()}');
 
         emit(AuthAuthenticatedState(
           userId: result?.uid ?? '',
-          email: result?.email,
-          displayName: result?.displayName,
+          email: result?.email ?? '',
+          displayName: result?.displayName ?? '',
           provider: 'google',
         ));
       } catch (e) {
-        print('fired goog $e');
+
         emit(AuthErrorState('Google sign in error: ${e.toString()}'));
       }
     });
@@ -49,20 +44,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<LoginWithFacebook>((event, emit) async {
       try {
-        print('fired ffaa');
         emit(AuthLoadingState());
         final result = await authRepository.loginWithFacebook();
-        print('fired faaa kkkkkkk${result.toString()}');
 
         emit(AuthAuthenticatedState(
-          userId: result?.uid ?? '',
-          email: result?.email,
-          displayName: result?.displayName,
+          userId: result.uid,
+          email: result.email ?? '',
+          displayName: result.displayName ?? '',
           provider: 'facebook',
         ));
       } catch (e) {
-        print('fired faceboo $e');
-        emit(AuthErrorState('faceboo sign in error: ${e.toString()}'));
+        print(e.toString());
+        emit(AuthErrorState('facebook sign in error: ${e.toString()}'));
       }
     });
   }

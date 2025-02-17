@@ -105,16 +105,17 @@ class AuthProvider {
     }
   }
 
-  Future<UserModel?> signInWithFacebook() async {
+  Future<UserModel> signInWithFacebook() async {
     try {
       final LoginResult result = await facebookAuth.login();
 
       if (result.status != LoginStatus.success) {
-        return null;
+        print(result.message);
+        throw(result.message ?? '');
       }
 
       final AccessToken? accessToken = result.accessToken;
-      if (accessToken == null) return null;
+      if (accessToken == null)  throw(result.message ?? '');
 
       final OAuthCredential credential = FacebookAuthProvider.credential(
         accessToken.tokenString,
@@ -122,14 +123,13 @@ class AuthProvider {
 
       final userCredential =
           await firebaseAuth.signInWithCredential(credential);
-      if (userCredential.user == null) return null;
+      if (userCredential.user == null) throw(result.message ?? '');
 
       final user = _userFromFirebase(userCredential.user!, 'facebook');
       await _saveUserToFirestore(user);
       return user;
     } catch (e) {
-      print('Facebook sign in error: $e');
-      rethrow;
+      throw(e.toString());
     }
   }
 

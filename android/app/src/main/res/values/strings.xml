@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">TaskWhiz</string>
     <string name="facebook_app_id">601055342746611</string>
     <string name="facebook_client_token">b60ca103422c5b070c424c40a149b4f8</string>
+    <string name="fb_login_protocol_scheme">fb601055342746611</string>
 </resources>
