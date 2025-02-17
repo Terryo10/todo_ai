@@ -17,7 +17,7 @@ class CourseCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       height: 280,
-      width: 260,
+      width: MediaQuery.of(context).size.width * .9,
       decoration: BoxDecoration(
         color: color,
         borderRadius: const BorderRadius.all(Radius.circular(30)),

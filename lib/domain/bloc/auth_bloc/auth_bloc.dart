@@ -28,14 +28,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final result = await authRepository.loginWithGoogle();
 
         emit(AuthAuthenticatedState(
-          userId: result?.uid ?? '',
-          email: result?.email ?? '',
-          displayName: result?.displayName ?? '',
+          userId: result.uid,
+          email: result.email ?? '',
+          displayName: result.displayName ?? '',
           provider: 'google',
         ));
       } catch (e) {
-        print(e.toString());
-
         emit(AuthErrorState('Google sign in error: ${e.toString()}'));
       }
     });

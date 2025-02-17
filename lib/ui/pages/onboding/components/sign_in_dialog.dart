@@ -1,9 +1,6 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:todo_ai/routes/router.gr.dart';
-
 import '../../../../domain/bloc/auth_bloc/auth_bloc.dart';
 
 void showCustomSignInDialog(BuildContext context,
@@ -17,10 +14,10 @@ void showCustomSignInDialog(BuildContext context,
     pageBuilder: (_, __, ___) {
       return BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is AuthAuthenticatedState) {
-            print('state 1 changed');
-            context.navigateTo(EntryPointRoute());
-          } else if (state is AuthErrorState) {
+          if(state is AuthAuthenticatedState){
+            //pop dialog
+          }
+          if (state is AuthErrorState) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
@@ -62,63 +59,76 @@ void showCustomSignInDialog(BuildContext context,
                       ),
                     ),
                     const SizedBox(height: 24),
-                    Flexible(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _FeatureItem(
-                              icon: "assets/icons/ai.svg",
-                              text: "AI-Generated Tasks",
-                              iconColor: Color(0xFF6C63FF),
+                    BlocBuilder<AuthBloc, AuthState>(
+                      builder: (context, state) {
+                        if (state is AuthLoadingState) {
+                          return SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
                             ),
-                            _FeatureItem(
-                              icon: "assets/icons/reminder.svg",
-                              text: "Smart Reminders",
-                              iconColor: Color(0xFF4CAF50),
+                          );
+                        }
+                        return Flexible(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _FeatureItem(
+                                  icon: "assets/icons/ai.svg",
+                                  text: "AI-Generated Tasks",
+                                  iconColor: Color(0xFF6C63FF),
+                                ),
+                                _FeatureItem(
+                                  icon: "assets/icons/reminder.svg",
+                                  text: "Smart Reminders",
+                                  iconColor: Color(0xFF4CAF50),
+                                ),
+                                _FeatureItem(
+                                  icon: "assets/icons/organize.svg",
+                                  text: "Effortless Organization",
+                                  iconColor: Color(0xFF2196F3),
+                                ),
+                                _FeatureItem(
+                                  icon: "assets/icons/sync.svg",
+                                  text: "Sync Across Devices",
+                                  iconColor: Color(0xFF9C27B0),
+                                ),
+                                _FeatureItem(
+                                  icon: "assets/icons/share.svg",
+                                  text: "Share Tasks Easily",
+                                  iconColor: Color(0xFFFF9800),
+                                ),
+                                _SignInButton(
+                                  icon: "assets/icons/google.svg",
+                                  text: "Continue with Google",
+                                  backgroundColor: Colors.white,
+                                  textColor: Colors.black87,
+                                  borderColor: Colors.grey.shade300,
+                                  authEvent: LoginWithGoogle(),
+                                ),
+                                _SignInButton(
+                                  icon: "assets/icons/facebook.svg",
+                                  text: "Continue with Facebook",
+                                  backgroundColor: const Color(0xFF1877F2),
+                                  textColor: Colors.white,
+                                  iconColor: Colors.white,
+                                  authEvent: LoginWithFacebook(),
+                                ),
+                                _SignInButton(
+                                  icon: "assets/icons/apple.svg",
+                                  text: "Continue with Apple",
+                                  backgroundColor: Colors.black,
+                                  textColor: Colors.white,
+                                  iconColor: Colors.white,
+                                  authEvent: LoginWithApple(),
+                                ),
+                              ],
                             ),
-                            _FeatureItem(
-                              icon: "assets/icons/organize.svg",
-                              text: "Effortless Organization",
-                              iconColor: Color(0xFF2196F3),
-                            ),
-                            _FeatureItem(
-                              icon: "assets/icons/sync.svg",
-                              text: "Sync Across Devices",
-                              iconColor: Color(0xFF9C27B0),
-                            ),
-                            _FeatureItem(
-                              icon: "assets/icons/share.svg",
-                              text: "Share Tasks Easily",
-                              iconColor: Color(0xFFFF9800),
-                            ),
-                            _SignInButton(
-                              icon: "assets/icons/google.svg",
-                              text: "Continue with Google",
-                              backgroundColor: Colors.white,
-                              textColor: Colors.black87,
-                              borderColor: Colors.grey.shade300,
-                              authEvent: LoginWithGoogle(),
-                            ),
-                            _SignInButton(
-                              icon: "assets/icons/facebook.svg",
-                              text: "Continue with Facebook",
-                              backgroundColor: const Color(0xFF1877F2),
-                              textColor: Colors.white,
-                              iconColor: Colors.white,
-                              authEvent: LoginWithFacebook(),
-                            ),
-                            _SignInButton(
-                              icon: "assets/icons/apple.svg",
-                              text: "Continue with Apple",
-                              backgroundColor: Colors.black,
-                              textColor: Colors.white,
-                              iconColor: Colors.white,
-                              authEvent: LoginWithApple(),
-                            ),
-                          ],
-                        ),
-                      ),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -192,72 +202,67 @@ class _SignInButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is AuthAuthenticatedState) {}
-      },
-      child: BlocBuilder<AuthBloc, AuthState>(
-        builder: (context, state) {
-          final bool isLoading = state is AuthLoadingState &&
-              ((authEvent is LoginWithGoogle && icon.contains('google')) ||
-                  (authEvent is LoginWithFacebook &&
-                      icon.contains('facebook')) ||
-                  (authEvent is LoginWithApple && icon.contains('apple')));
-
-          return Padding(
-            padding: const EdgeInsets.only(top: 12),
-            child: ElevatedButton(
-              onPressed: isLoading
-                  ? null
-                  : () {
-                      if (authEvent != null) {
-                        BlocProvider.of<AuthBloc>(context).add(authEvent!);
-                      }
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: backgroundColor,
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: borderColor != null
-                      ? BorderSide(color: borderColor!)
-                      : BorderSide.none,
-                ),
-                elevation: 0,
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        final bool isLoading = state is AuthLoadingState &&
+            ((authEvent is LoginWithGoogle && icon.contains('google')) ||
+                (authEvent is LoginWithFacebook &&
+                    icon.contains('facebook')) ||
+                (authEvent is LoginWithApple && icon.contains('apple')));
+    
+        return Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: ElevatedButton(
+            onPressed: isLoading
+                ? null
+                : () {
+                    if (authEvent != null) {
+                      BlocProvider.of<AuthBloc>(context).add(authEvent!);
+                    }
+                  },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: backgroundColor,
+              minimumSize: const Size(double.infinity, 50),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: borderColor != null
+                    ? BorderSide(color: borderColor!)
+                    : BorderSide.none,
               ),
-              child: isLoading
-                  ? SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(textColor),
-                      ),
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SvgPicture.asset(
-                          icon,
-                          height: 24,
-                          width: 24,
-                          color: iconColor,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          text,
-                          style: TextStyle(
-                            color: textColor,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
+              elevation: 0,
             ),
-          );
-        },
-      ),
+            child: isLoading
+                ? SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation<Color>(textColor),
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SvgPicture.asset(
+                        icon,
+                        height: 24,
+                        width: 24,
+                        color: iconColor,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        text,
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+        );
+      },
     );
   }
 }

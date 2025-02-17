@@ -11,13 +11,14 @@ class AuthRepository {
 
   Future<void> logOut() async {
     await storage.deleteAll();
+    await authProvider.logOut();
   }
 
   Future<void> saveToken(String token) async {
     await storage.write(key: 'token', value: token);
   }
 
-  Future<UserModel?> loginWithGoogle() async {
+  Future<UserModel> loginWithGoogle() async {
     return await authProvider.signInWithGoogle();
   }
 

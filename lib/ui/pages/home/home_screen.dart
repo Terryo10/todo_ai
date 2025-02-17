@@ -16,38 +16,18 @@ class HomePage extends StatelessWidget {
         bottom: false,
         child: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    
             children: [
-              const SizedBox(height: 40),
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Text(
-                  "Courses",
-                  style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                      color: Colors.black, fontWeight: FontWeight.bold),
-                ),
-              ),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: courses
-                      .map(
-                        (course) => Padding(
-                          padding: const EdgeInsets.only(left: 20),
-                          child: CourseCard(
-                            title: course.title,
-                            iconSrc: course.iconSrc,
-                            color: course.color,
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
+              const SizedBox(height: 60),
+              CourseCard(
+                title: 'llll',
+                iconSrc: 'assets/icons/code.svg',
+                color: const Color(0xFF7553F6),
               ),
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Text(
-                  "Recent",
+                  "My Todos",
                   style: Theme.of(context).textTheme.headlineSmall!.copyWith(
                       color: Colors.black, fontWeight: FontWeight.bold),
                 ),

@@ -52,10 +52,10 @@ class AuthProvider {
     );
   }
 
-  Future<UserModel?> signInWithGoogle() async {
+  Future<UserModel> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-      if (googleUser == null) return null;
+      if (googleUser == null)  throw ('Failed to login with google');
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
@@ -66,16 +66,14 @@ class AuthProvider {
 
       final userCredential =
           await firebaseAuth.signInWithCredential(credential);
-      if (userCredential.user == null) return null;
-
+      if (userCredential.user == null) throw ('Failed to login with google');
       final user = _userFromFirebase(userCredential.user!, 'google');
-      print('goog kkkk ${user.email} ${user.uid} ${user.displayName}');
+
       await _saveUserToFirestore(user);
       await saveUserToStorage(user);
       return user;
     } catch (e) {
-      print('Google sign in error: $e');
-      rethrow;
+      throw (e.toString());
     }
   }
 
@@ -145,6 +143,7 @@ class AuthProvider {
 
   Future<void> logOut() async {
     try {
+      print('logging out');
       final currentUser = firebaseAuth.currentUser;
       if (currentUser != null) {
         // Update last login time before logging out
