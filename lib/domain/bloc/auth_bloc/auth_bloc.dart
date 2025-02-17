@@ -19,6 +19,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await authRepository.logOut();
       cacheBloc.add(AppStarted());
       emit(AuthInitial());
+      emit(UnAuthenticatedState());
     });
 
     on<LoginWithGoogle>((event, emit) async {

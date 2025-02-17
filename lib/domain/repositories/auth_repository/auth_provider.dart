@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
@@ -24,6 +26,14 @@ class AuthProvider {
 
   Future<void> saveToken(String token) async {
     await storage.write(key: 'auth_token', value: token);
+  }
+
+  Future<void> saveUserToStorage(UserModel user) async {
+    await storage.write(key: 'user', value: user.toString());
+  }
+
+  Future<UserModel?> getUserFromStorage() async {
+    return jsonDecode(await storage.read(key: 'user') ?? '');
   }
 
   Future<String?> getToken() async {
@@ -59,8 +69,9 @@ class AuthProvider {
       if (userCredential.user == null) return null;
 
       final user = _userFromFirebase(userCredential.user!, 'google');
-      print('goog kkkk $user');
+      print('goog kkkk ${user.email} ${user.uid} ${user.displayName}');
       await _saveUserToFirestore(user);
+      await saveUserToStorage(user);
       return user;
     } catch (e) {
       print('Google sign in error: $e');

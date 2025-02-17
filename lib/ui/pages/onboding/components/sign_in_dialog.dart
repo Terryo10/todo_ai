@@ -18,6 +18,7 @@ void showCustomSignInDialog(BuildContext context,
       return BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticatedState) {
+            print('state 1 changed');
             context.navigateTo(EntryPointRoute());
           } else if (state is AuthErrorState) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -191,66 +192,72 @@ class _SignInButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        final bool isLoading = state is AuthLoadingState &&
-            ((authEvent is LoginWithGoogle && icon.contains('google')) ||
-                (authEvent is LoginWithFacebook && icon.contains('facebook')) ||
-                (authEvent is LoginWithApple && icon.contains('apple')));
-
-        return Padding(
-          padding: const EdgeInsets.only(top: 12),
-          child: ElevatedButton(
-            onPressed: isLoading
-                ? null
-                : () {
-                    if (authEvent != null) {
-                      BlocProvider.of<AuthBloc>(context).add(authEvent!);
-                    }
-                  },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: backgroundColor,
-              minimumSize: const Size(double.infinity, 50),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: borderColor != null
-                    ? BorderSide(color: borderColor!)
-                    : BorderSide.none,
-              ),
-              elevation: 0,
-            ),
-            child: isLoading
-                ? SizedBox(
-                    height: 24,
-                    width: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      valueColor: AlwaysStoppedAnimation<Color>(textColor),
-                    ),
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SvgPicture.asset(
-                        icon,
-                        height: 24,
-                        width: 24,
-                        color: iconColor,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        text,
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
-        );
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthAuthenticatedState) {}
       },
+      child: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, state) {
+          final bool isLoading = state is AuthLoadingState &&
+              ((authEvent is LoginWithGoogle && icon.contains('google')) ||
+                  (authEvent is LoginWithFacebook &&
+                      icon.contains('facebook')) ||
+                  (authEvent is LoginWithApple && icon.contains('apple')));
+
+          return Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: ElevatedButton(
+              onPressed: isLoading
+                  ? null
+                  : () {
+                      if (authEvent != null) {
+                        BlocProvider.of<AuthBloc>(context).add(authEvent!);
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: backgroundColor,
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: borderColor != null
+                      ? BorderSide(color: borderColor!)
+                      : BorderSide.none,
+                ),
+                elevation: 0,
+              ),
+              child: isLoading
+                  ? SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(textColor),
+                      ),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SvgPicture.asset(
+                          icon,
+                          height: 24,
+                          width: 24,
+                          color: iconColor,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          text,
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
