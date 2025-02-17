@@ -16,13 +16,14 @@ class HomePage extends StatelessWidget {
         bottom: false,
         child: SingleChildScrollView(
           child: Column(
-    
             children: [
-              const SizedBox(height: 60),
-              CourseCard(
-                title: 'llll',
-                iconSrc: 'assets/icons/code.svg',
-                color: const Color(0xFF7553F6),
+              const SizedBox(height: 80),
+              Padding(
+                padding: const EdgeInsets.only(left: 16.0, right: 16.0),
+                child: AiTodoCard(
+                  iconSrc: 'assets/icons/code.svg',
+                  // color: const Color(0xFF7553F6),
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.all(20),

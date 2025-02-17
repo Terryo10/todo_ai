@@ -1,77 +1,289 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'dart:async';
 
-class CourseCard extends StatelessWidget {
-  const CourseCard({
+class AiTodoCard extends StatefulWidget {
+  const AiTodoCard({
     super.key,
-    required this.title,
-    this.color = const Color(0xFF7553F6),
-    this.iconSrc = "assets/icons/ios.svg",
+    this.color = const Color(0xFF2D2D2D),
+    this.iconSrc = "assets/icons/ai_assistant.svg",
   });
 
-  final String title, iconSrc;
   final Color color;
+  final String iconSrc;
+
+  @override
+  State<AiTodoCard> createState() => _AiTodoCardState();
+}
+
+class _AiTodoCardState extends State<AiTodoCard> {
+  bool _isExpanded = false;
+  List<TodoItem> _tasks = [];
+  TextEditingController _promptController = TextEditingController();
+  String _currentTypingText = "";
+  int _currentPromptIndex = 0;
+  Timer? _typingTimer;
+  
+  final List<String> _aiPrompts = [
+    "Tell me what you want, then I'll create tasks for you...",
+    "I can help you with productivity...",
+    "Let me organize your thoughts into actionable tasks...",
+    "What project shall we break down today?...",
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _startTypingAnimation();
+  }
+
+  void _startTypingAnimation() {
+    String targetText = _aiPrompts[_currentPromptIndex];
+    int charIndex = 0;
+    
+    _typingTimer?.cancel();
+    _currentTypingText = "";
+    
+    _typingTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+      if (charIndex < targetText.length) {
+        setState(() {
+          _currentTypingText = targetText.substring(0, charIndex + 1);
+        });
+        charIndex++;
+      } else {
+        timer.cancel();
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) {
+            setState(() {
+              _currentPromptIndex = (_currentPromptIndex + 1) % _aiPrompts.length;
+              _startTypingAnimation();
+            });
+          }
+        });
+      }
+    });
+  }
+
+  void _toggleExpanded() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+      if (!_isExpanded) {
+        _tasks.clear();
+        _promptController.clear();
+        _startTypingAnimation();
+      } else {
+        _typingTimer?.cancel();
+      }
+    });
+  }
+
+  void _generateTodos(String prompt) {
+    // Simulated AI response - Connect to your AI service
+    setState(() {
+      _isExpanded = true;
+      _tasks = [
+        TodoItem(title: "Implement Mukuru Card Visibility for All Customer States"),
+        TodoItem(title: "Integrate Mukuru Card Flow Based on Customer State"),
+        TodoItem(title: "Design UI for Suggested Products Section"),
+        TodoItem(title: "Develop Backend Support for Suggested Products"),
+        TodoItem(title: "Conduct User Acceptance Testing for Mukuru Card Integration"),
+      ];
+    });
+  }
+
+  void _toggleTaskAcceptance(TodoItem task) {
+    setState(() {
+      task.isAccepted = !task.isAccepted;
+    });
+  }
+
+  void _removeTask(TodoItem task) {
+    setState(() {
+      _tasks.remove(task);
+      if (_tasks.isEmpty) {
+        _toggleExpanded();
+      }
+    });
+  }
+
+  void _acceptAll() {
+    setState(() {
+      for (var task in _tasks) {
+        task.isAccepted = true;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      height: 280,
-      width: MediaQuery.of(context).size.width * .9,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      padding: const EdgeInsets.all(16),
+      width: MediaQuery.of(context).size.width * 0.95,
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: const BorderRadius.all(Radius.circular(30)),
+        color: widget.color,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade800),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 6, right: 8),
-              child: Column(
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                        color: Colors.white, fontWeight: FontWeight.w600),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.only(top: 12, bottom: 8),
-                    child: Text(
-                      "Build and animate an iOS app from scratch",
-                      style: TextStyle(
-                        color: Colors.white38,
-                      ),
-                    ),
-                  ),
-                  const Text(
-                    "61 SECTIONS - 11 HOURS",
-                    style: TextStyle(
-                      color: Colors.white38,
-                    ),
-                  ),
-                  const Spacer(),
-                  Row(
-                    children: List.generate(
-                      3,
-                      (index) => Transform.translate(
-                        offset: Offset((-10 * index).toDouble(), 0),
-                        child: CircleAvatar(
-                          radius: 20,
-                          backgroundImage: AssetImage(
-                            "assets/avaters/Avatar ${index + 1}.jpg",
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "Task Whiz",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (_isExpanded)
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: _toggleExpanded,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (!_isExpanded) ...[
+            Text(
+              _currentTypingText,
+              style: TextStyle(
+                color: Colors.grey.shade300,
+                fontSize: 16,
               ),
             ),
-          ),
-          SvgPicture.asset(iconSrc),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _promptController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: "Type your request here...",
+                      hintStyle: TextStyle(color: Colors.grey.shade500),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey.shade800),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey.shade800),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.send, color: Colors.white),
+                  onPressed: () => _generateTodos(_promptController.text),
+                ),
+              ],
+            ),
+          ],
+          if (_isExpanded && _tasks.isNotEmpty) ...[
+            ..._tasks.map((task) => _buildTaskItem(task)),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.thumb_up_outlined, 
+                         color: Colors.grey.shade500, 
+                         size: 20),
+                    const SizedBox(width: 8),
+                    Icon(Icons.thumb_down_outlined, 
+                         color: Colors.grey.shade500, 
+                         size: 20),
+                  ],
+                ),
+                TextButton(
+                  onPressed: _acceptAll,
+                  child: const Text(
+                    "Accept all",
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
   }
+
+  Widget _buildTaskItem(TodoItem task) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          SvgPicture.asset(
+            "assets/icons/task_icon.svg",
+            height: 16,
+            width: 16,
+            color: Colors.grey.shade500,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              task.title,
+              style: const TextStyle(
+                color: Colors.white,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.check,
+              color: task.isAccepted ? Colors.green : Colors.grey.shade500,
+            ),
+            onPressed: () => _toggleTaskAcceptance(task),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: Icon(Icons.close, color: Colors.grey.shade500),
+            onPressed: () => _removeTask(task),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: Icon(Icons.edit, color: Colors.grey.shade500),
+            onPressed: () {
+              // Implement edit functionality
+            },
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _typingTimer?.cancel();
+    _promptController.dispose();
+    super.dispose();
+  }
+}
+
+class TodoItem {
+  String title;
+  bool isAccepted;
+
+  TodoItem({
+    required this.title,
+    this.isAccepted = false,
+  });
 }
