@@ -39,7 +39,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     });
 
     on<LoginWithApple>((event, emit) {
-      print('fired apple');
+       try {
+        
+
+        emit(AuthAuthenticatedState(
+          userId: 'kkkkk',
+          email: 'tapiwatererai@outlook.com',
+          displayName:'Tapiwa Terereai',
+          provider: 'google',
+        ));
+
+       }catch(e){
+        print(e.toString());
+       }
     });
 
     on<LoginWithFacebook>((event, emit) async {

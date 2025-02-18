@@ -24,15 +24,15 @@ final List<Course> courses = [
 ];
 
 final List<Course> recentCourses = [
-  Course(title: "State Machine"),
+  Course(title: "My Day"),
   Course(
-    title: "Animated Menu",
+    title: "Work Tasks",
     color: const Color(0xFF9CC5FF),
     iconSrc: "assets/icons/code.svg",
   ),
-  Course(title: "Flutter with Rive"),
+  Course(title: "My Daily Routine"),
   Course(
-    title: "Animated Menu",
+    title: "Groceries",
     color: const Color(0xFF9CC5FF),
     iconSrc: "assets/icons/code.svg",
   ),

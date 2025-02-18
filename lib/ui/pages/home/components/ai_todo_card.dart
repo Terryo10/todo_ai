@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:async';
 
+import 'package:lottie/lottie.dart';
+
 class AiTodoCard extends StatefulWidget {
   const AiTodoCard({
     super.key,
@@ -141,13 +143,9 @@ class _AiTodoCardState extends State<AiTodoCard> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              if (_isExpanded)
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: _toggleExpanded,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
+               SizedBox(
+                height: 70,
+                child: Lottie.asset('assets/lotties/ai.json'))
             ],
           ),
           const SizedBox(height: 16),
