@@ -1,7 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../../domain/bloc/todo_bloc/todo_bloc.dart';
 import '../../../domain/model/course.dart';
+import '../../../routes/router.gr.dart';
 import 'components/ai_todo_card.dart';
 import 'components/secondary_course_card.dart';
 
@@ -36,7 +39,6 @@ class _HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: AiTodoCard(
                       iconSrc: 'assets/icons/code.svg',
-                      
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -47,36 +49,37 @@ class _HomePageState extends State<HomePage> {
             ),
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverAnimatedList(
-                key: _listKey,
-                initialItemCount: recentCourses.length,
-                itemBuilder: (context, index, animation) {
-                  return SlideTransition(
-                    position: animation.drive(Tween(
-                      begin: const Offset(1, 0),
-                      end: const Offset(0, 0),
-                    )),
-                    child: FadeTransition(
-                      opacity: animation,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: TodoCard(
-                          title: recentCourses[index].title,
-                          iconsSrc: recentCourses[index].iconSrc,
-                          colorl: recentCourses[index].color,
-                        ),
+              sliver: BlocBuilder<TodoBloc, TodoState>(
+                builder: (context, state) {
+                  if (state is TodoLoaded) {
+                    return SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final todo = state.todos[index];
+                          return KeyedSubtree(
+                            key: ValueKey(todo.id),
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: TodoCard(todo: todo),
+                            ),
+                          );
+                        },
+                        childCount: state.todos.length,
                       ),
-                    ),
+                    );
+                  }
+                  return const SliverToBoxAdapter(
+                    child: Center(child: CircularProgressIndicator()),
                   );
                 },
               ),
-            ),
+            )
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Add new todo logic
+          context.navigateTo(TodoRouteRoute());
         },
         backgroundColor: Theme.of(context).primaryColor,
         child: const Icon(Icons.add),
@@ -138,7 +141,7 @@ class _HomePageState extends State<HomePage> {
         itemBuilder: (context, index) {
           final filter = _filters[index];
           final isSelected = filter == _selectedFilter;
-          
+
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: FilterChip(
@@ -150,7 +153,7 @@ class _HomePageState extends State<HomePage> {
               backgroundColor: Colors.grey[200],
               selectedColor: Theme.of(context).primaryColor.withOpacity(0.2),
               labelStyle: TextStyle(
-                color: isSelected 
+                color: isSelected
                     ? Theme.of(context).primaryColor
                     : Colors.black87,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,

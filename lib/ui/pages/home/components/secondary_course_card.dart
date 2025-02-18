@@ -1,32 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:todo_ai/domain/model/todo_model.dart';
 
 class TodoCard extends StatelessWidget {
-  final String title;
-  final String iconsSrc;
-  final Color colorl;
-  final int totalTasks;
-  final int completedTasks;
+  final Todo todo;
 
   const TodoCard({
-    Key? key,
-    required this.title,
-    required this.iconsSrc,
-    required this.colorl,
-    this.totalTasks = 15,  // Default values for demo
-    this.completedTasks = 2,
-  }) : super(key: key);
+    super.key,
+    required this.todo,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: colorl,
+        color: const Color(0xFF7553F6),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: colorl.withOpacity(0.3),
+            color: const Color(0xFF7553F6).withOpacity(0.3),
             offset: const Offset(0, 4),
             blurRadius: 10,
           ),
@@ -48,7 +41,7 @@ class TodoCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        title,
+                        todo.name,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 24,
@@ -57,7 +50,7 @@ class TodoCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '$totalTasks Tasks, $completedTasks done, ${totalTasks - completedTasks} pending',
+                        '10 Tasks, 10 done, 10 pending',
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.8),
                           fontSize: 14,
@@ -85,14 +78,7 @@ class TodoCard extends StatelessWidget {
                         ),
                       ),
                       // Icon
-                      Center(
-                        child: SvgPicture.asset(
-                          iconsSrc,
-                          width: 24,
-                          height: 24,
-                          color: Colors.white,
-                        ),
-                      ),
+                      Center(child: Icon(Icons.menu)),
                     ],
                   ),
                 ),

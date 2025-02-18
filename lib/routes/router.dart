@@ -10,5 +10,7 @@ class AppRouter extends RootStackRouter {
             page: OnbodingRoute.page, initial: true,),
         AutoRoute(page: HomeRoute.page, guards: [AuthGuard()]),
         AutoRoute(page: EntryPointRoute.page, guards: [AuthGuard()]),
+        AutoRoute(page: TodoRouteRoute.page, guards: [AuthGuard()]),
+
       ];
 }

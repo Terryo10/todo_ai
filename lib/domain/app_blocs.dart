@@ -1,3 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:todo_ai/domain/repositories/todo_repository/todo_repository.dart';
+
+import 'bloc/todo_bloc/todo_bloc.dart';
 import 'repositories/auth_repository/auth_repository.dart';
 import 'repositories/cache_repository/cache_repository.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -10,7 +14,8 @@ import 'bloc/cache_bloc/cache_bloc.dart';
 class AppBlocs extends StatelessWidget {
   final Widget app;
   final FlutterSecureStorage storage;
-  const AppBlocs({super.key, required this.app, required this.storage});
+  final FirebaseFirestore firestore;
+  const AppBlocs({super.key, required this.app, required this.storage, required this.firestore});
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +35,11 @@ class AppBlocs extends StatelessWidget {
             authRepository: RepositoryProvider.of<AuthRepository>(context),
           ),
         ),
+        BlocProvider(
+          create: (context) => TodoBloc(
+           repository: RepositoryProvider.of<TodoRepository>(context),
+          )..add(LoadTodos()),
+        )
       ],
       child: app,
     );

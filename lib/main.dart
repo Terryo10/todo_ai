@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:todo_ai/firebase_options.dart';
+import 'domain/repositories/todo_repository/todo_repository.dart';
 import 'routes/router.dart';
 import 'domain/app_blocs.dart';
 import 'domain/app_repositories.dart';
@@ -16,6 +17,7 @@ void main() async {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   final appRouter = AppRouter();
   const FlutterSecureStorage storage = FlutterSecureStorage();
+  final todoBox = await TodoRepository.init();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -32,7 +34,9 @@ void main() async {
     firestore: firestore,
     googleSignIn: googleSignIn,
     storage: storage,
+    todoBox: todoBox,
     appBlocs: AppBlocs(
+      firestore: firestore,
       storage: storage,
       app: MyApp(
         appRouter: appRouter,
@@ -61,12 +65,11 @@ class _MyAppState extends State<MyApp> {
     initialization();
   }
 
-   void initialization() async {
+  void initialization() async {
     await Future.delayed(const Duration(seconds: 1));
     print('go!');
     FlutterNativeSplash.remove();
   }
-
 
   @override
   Widget build(BuildContext context) {
