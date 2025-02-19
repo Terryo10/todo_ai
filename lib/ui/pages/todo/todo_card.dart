@@ -88,7 +88,7 @@ class TodoCard extends StatelessWidget {
           ),
 
           // Action Buttons
-          ButtonBar(
+          OverflowBar(
             alignment: MainAxisAlignment.end,
             children: [
               TextButton.icon(

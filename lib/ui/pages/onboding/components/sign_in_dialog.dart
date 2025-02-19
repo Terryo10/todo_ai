@@ -11,15 +11,30 @@ void showCustomSignInDialog(BuildContext context,
     context: context,
     barrierLabel: "Barrier",
     barrierDismissible: true,
-    barrierColor: Colors.black.withOpacity(0.5),
+    barrierColor: Colors.black.withValues(alpha: 0.5), // Fixed incorrect method
     transitionDuration: const Duration(milliseconds: 400),
     pageBuilder: (_, __, ___) {
-      return BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) {
-          if(state is AuthAuthenticatedState){
-            //pop dialog
+      return _SignInDialog(onDismiss: onDismiss); // Extracted widget
+    },
+  );
+}
+
+class _SignInDialog extends StatelessWidget {
+  final VoidCallback onDismiss;
+
+  const _SignInDialog({required this.onDismiss});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthAuthenticatedState) {
+          if (context.mounted) {
+            Navigator.of(context, rootNavigator: true).pop();
           }
-          if (state is AuthErrorState) {
+        }
+        if (state is AuthErrorState) {
+          if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
@@ -28,122 +43,120 @@ void showCustomSignInDialog(BuildContext context,
               ),
             );
           }
-        },
-        child: Center(
-          child: WillPopScope(
-            onWillPop: () async {
-              onDismiss();
-              return true;
-            },
-            child: Material(
-              type: MaterialType.transparency,
-              child: Container(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.8,
-                  maxWidth: MediaQuery.of(context).size.width - 32,
-                ),
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      "Unlock Smart Productivity!",
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E1E1E),
-                      ),
+        }
+      },
+      child: Center(
+        // ignore: deprecated_member_use
+        child: WillPopScope(
+          onWillPop: () async{
+            onDismiss();
+            return true;
+          },
+          child: Material(
+            type: MaterialType.transparency,
+            child: Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.8,
+                maxWidth: MediaQuery.of(context).size.width - 32,
+              ),
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "Unlock Smart Productivity!",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E1E1E),
                     ),
-                    const SizedBox(height: 24),
-                    BlocBuilder<AuthBloc, AuthState>(
-                      builder: (context, state) {
-                        if (state is AuthLoadingState) {
-                          return SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                            ),
-                          );
-                        }
-                        return Flexible(
-                          child: SingleChildScrollView(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _FeatureItem(
-                                  icon: "assets/icons/ai.svg",
-                                  text: "AI-Generated Tasks",
-                                  iconColor: Color(0xFF6C63FF),
-                                ),
-                                _FeatureItem(
-                                  icon: "assets/icons/reminder.svg",
-                                  text: "Smart Reminders",
-                                  iconColor: Color(0xFF4CAF50),
-                                ),
-                                _FeatureItem(
-                                  icon: "assets/icons/organize.svg",
-                                  text: "Effortless Organization",
-                                  iconColor: Color(0xFF2196F3),
-                                ),
-                                _FeatureItem(
-                                  icon: "assets/icons/sync.svg",
-                                  text: "Sync Across Devices",
-                                  iconColor: Color(0xFF9C27B0),
-                                ),
-                                _FeatureItem(
-                                  icon: "assets/icons/share.svg",
-                                  text: "Share Tasks Easily",
-                                  iconColor: Color(0xFFFF9800),
-                                ),
-                                _SignInButton(
-                                  icon: "assets/icons/google.svg",
-                                  text: "Continue with Google",
-                                  backgroundColor: Colors.white,
-                                  textColor: Colors.black87,
-                                  borderColor: Colors.grey.shade300,
-                                  authEvent: LoginWithGoogle(),
-                                ),
-                                _SignInButton(
-                                  icon: "assets/icons/facebook.svg",
-                                  text: "Continue with Facebook",
-                                  backgroundColor: const Color(0xFF1877F2),
-                                  textColor: Colors.white,
-                                  iconColor: Colors.white,
-                                  authEvent: LoginWithFacebook(),
-                                ),
-                                if(Platform.isIOS)
-                                _SignInButton(
-                                  icon: "assets/icons/apple.svg",
-                                  text: "Continue with Apple",
-                                  backgroundColor: Colors.black,
-                                  textColor: Colors.white,
-                                  iconColor: Colors.white,
-                                  authEvent: LoginWithApple(),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 24),
+                  _SignInOptions(),
+                  _SignInButton(
+                    icon: "assets/icons/google.svg",
+                    text: "Continue with Google",
+                    backgroundColor: Colors.white,
+                    textColor: Colors.black87,
+                    borderColor: Colors.grey.shade300,
+                    authEvent: LoginWithGoogle(),
+                  ),
+                  _SignInButton(
+                    icon: "assets/icons/facebook.svg",
+                    text: "Continue with Facebook",
+                    backgroundColor: const Color(0xFF1877F2),
+                    textColor: Colors.white,
+                    iconColor: Colors.white,
+                    authEvent: LoginWithFacebook(),
+                  ),
+                  if (Platform.isIOS)
+                    _SignInButton(
+                      icon: "assets/icons/apple.svg",
+                      text: "Continue with Apple",
+                      backgroundColor: Colors.black,
+                      textColor: Colors.white,
+                      iconColor: Colors.white,
+                      authEvent: LoginWithApple(),
+                    ), // Extracted BlocBuilder
+                ],
               ),
             ),
           ),
         ),
-      );
-    },
-  ).then((_) {
-    onDismiss();
-  });
+      ),
+    );
+  }
+}
+
+class _SignInOptions extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        if (state is AuthLoadingState) {
+          return SizedBox(
+            height: 24,
+            width: 24,
+            child: CircularProgressIndicator(strokeWidth: 2.5),
+          );
+        }
+        return Flexible(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _FeatureItem(
+                    icon: "assets/icons/ai.svg",
+                    text: "AI-Generated Tasks",
+                    iconColor: Color(0xFF6C63FF)),
+                _FeatureItem(
+                    icon: "assets/icons/reminder.svg",
+                    text: "Smart Reminders",
+                    iconColor: Color(0xFF4CAF50)),
+                _FeatureItem(
+                    icon: "assets/icons/organize.svg",
+                    text: "Effortless Organization",
+                    iconColor: Color(0xFF2196F3)),
+                _FeatureItem(
+                    icon: "assets/icons/sync.svg",
+                    text: "Sync Across Devices",
+                    iconColor: Color(0xFF9C27B0)),
+                _FeatureItem(
+                    icon: "assets/icons/share.svg",
+                    text: "Share Tasks Easily",
+                    iconColor: Color(0xFFFF9800)),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _FeatureItem extends StatelessWidget {
@@ -167,7 +180,7 @@ class _FeatureItem extends StatelessWidget {
             icon,
             height: 24,
             width: 24,
-            color: iconColor,
+            colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
           ),
           const SizedBox(width: 12),
           Text(
@@ -209,10 +222,9 @@ class _SignInButton extends StatelessWidget {
       builder: (context, state) {
         final bool isLoading = state is AuthLoadingState &&
             ((authEvent is LoginWithGoogle && icon.contains('google')) ||
-                (authEvent is LoginWithFacebook &&
-                    icon.contains('facebook')) ||
+                (authEvent is LoginWithFacebook && icon.contains('facebook')) ||
                 (authEvent is LoginWithApple && icon.contains('apple')));
-    
+
         return Padding(
           padding: const EdgeInsets.only(top: 12),
           child: ElevatedButton(
@@ -250,7 +262,8 @@ class _SignInButton extends StatelessWidget {
                         icon,
                         height: 24,
                         width: 24,
-                        color: iconColor,
+                        colorFilter: icon.contains('google') ? null :ColorFilter.mode(
+                            iconColor ?? Colors.white, BlendMode.srcIn,),
                       ),
                       const SizedBox(width: 12),
                       Text(

@@ -97,18 +97,18 @@ class AuthProvider {
 
       // For Apple Sign In, we need to handle the display name specially
       // because it's only provided on the first sign-in
-      String? displayName;
-      if (appleCredential.givenName != null &&
-          appleCredential.familyName != null) {
-        displayName =
-            '${appleCredential.givenName} ${appleCredential.familyName}';
-      }
+      // String? displayName;
+      // if (appleCredential.givenName != null &&
+      //     appleCredential.familyName != null) {
+      //   displayName =
+      //       '${appleCredential.givenName} ${appleCredential.familyName}';
+      // }
 
       final user = _userFromFirebase(userCredential.user!, 'apple');
       await _saveUserToFirestore(user);
       return user;
     } catch (e) {
-      print('Apple sign in error: $e');
+      
       rethrow;
     }
   }
@@ -118,7 +118,7 @@ class AuthProvider {
       final LoginResult result = await facebookAuth.login();
 
       if (result.status != LoginStatus.success) {
-        print(result.message);
+
         throw (result.message ?? '');
       }
 
@@ -143,23 +143,21 @@ class AuthProvider {
 
   Future<void> logOut() async {
     try {
-      print('logging out');
       final currentUser = firebaseAuth.currentUser;
       if (currentUser != null) {
-        // Update last login time before logging out
+  
         await firestore.collection('users').doc(currentUser.uid).update({
           'lastLoginAt': DateTime.now().toIso8601String(),
         });
       }
 
-      // Sign out from all providers
       await Future.wait([
         firebaseAuth.signOut(),
         googleSignIn.signOut(),
         facebookAuth.logOut(),
       ]);
     } catch (e) {
-      print('Logout error: $e');
+
       rethrow;
     }
   }

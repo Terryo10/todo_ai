@@ -17,7 +17,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
+  // final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   String _selectedFilter = 'All';
   final List<String> _filters = ['All', 'Today', 'Important', 'Completed'];
 
@@ -114,7 +114,7 @@ class _HomePageState extends State<HomePage> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -122,7 +122,10 @@ class _HomePageState extends State<HomePage> {
                 'assets/icons/User.svg',
                 width: 24,
                 height: 24,
-                color: Theme.of(context).primaryColor,
+                colorFilter: ColorFilter.mode(
+                  Theme.of(context).primaryColor,
+                  BlendMode.src,
+                ),
               ),
             ),
           ),
@@ -151,7 +154,7 @@ class _HomePageState extends State<HomePage> {
                 setState(() => _selectedFilter = filter);
               },
               backgroundColor: Colors.grey[200],
-              selectedColor: Theme.of(context).primaryColor.withOpacity(0.2),
+              selectedColor: Theme.of(context).primaryColor.withValues(alpha:0.2),
               labelStyle: TextStyle(
                 color: isSelected
                     ? Theme.of(context).primaryColor

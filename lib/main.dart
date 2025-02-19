@@ -67,7 +67,6 @@ class _MyAppState extends State<MyApp> {
 
   void initialization() async {
     await Future.delayed(const Duration(seconds: 1));
-    print('go!');
     FlutterNativeSplash.remove();
   }
 

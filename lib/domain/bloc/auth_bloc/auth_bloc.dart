@@ -49,8 +49,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           provider: 'google',
         ));
 
-       }catch(e){
-        print(e.toString());
+       }catch(_){
        }
     });
 
@@ -66,7 +65,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           provider: 'facebook',
         ));
       } catch (e) {
-        print(e.toString());
         emit(AuthErrorState('facebook sign in error: ${e.toString()}'));
       }
     });

@@ -21,11 +21,11 @@ class AiTodoCard extends StatefulWidget {
 class _AiTodoCardState extends State<AiTodoCard> {
   bool _isExpanded = false;
   List<TodoItem> _tasks = [];
-  TextEditingController _promptController = TextEditingController();
+  final TextEditingController _promptController = TextEditingController();
   String _currentTypingText = "";
   int _currentPromptIndex = 0;
   Timer? _typingTimer;
-  
+
   final List<String> _aiPrompts = [
     "Tell me what you want, then I'll create tasks for you...",
     "I can help you with productivity...",
@@ -42,10 +42,10 @@ class _AiTodoCardState extends State<AiTodoCard> {
   void _startTypingAnimation() {
     String targetText = _aiPrompts[_currentPromptIndex];
     int charIndex = 0;
-    
+
     _typingTimer?.cancel();
     _currentTypingText = "";
-    
+
     _typingTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
       if (charIndex < targetText.length) {
         setState(() {
@@ -57,7 +57,8 @@ class _AiTodoCardState extends State<AiTodoCard> {
         Future.delayed(const Duration(seconds: 2), () {
           if (mounted) {
             setState(() {
-              _currentPromptIndex = (_currentPromptIndex + 1) % _aiPrompts.length;
+              _currentPromptIndex =
+                  (_currentPromptIndex + 1) % _aiPrompts.length;
               _startTypingAnimation();
             });
           }
@@ -84,11 +85,14 @@ class _AiTodoCardState extends State<AiTodoCard> {
     setState(() {
       _isExpanded = true;
       _tasks = [
-        TodoItem(title: "Implement Mukuru Card Visibility for All Customer States"),
+        TodoItem(
+            title: "Implement Mukuru Card Visibility for All Customer States"),
         TodoItem(title: "Integrate Mukuru Card Flow Based on Customer State"),
         TodoItem(title: "Design UI for Suggested Products Section"),
         TodoItem(title: "Develop Backend Support for Suggested Products"),
-        TodoItem(title: "Conduct User Acceptance Testing for Mukuru Card Integration"),
+        TodoItem(
+            title:
+                "Conduct User Acceptance Testing for Mukuru Card Integration"),
       ];
     });
   }
@@ -143,9 +147,8 @@ class _AiTodoCardState extends State<AiTodoCard> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-               SizedBox(
-                height: 70,
-                child: Lottie.asset('assets/lotties/ai.json'))
+              SizedBox(
+                  height: 70, child: Lottie.asset('assets/lotties/ai.json'))
             ],
           ),
           const SizedBox(height: 16),
@@ -194,13 +197,11 @@ class _AiTodoCardState extends State<AiTodoCard> {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.thumb_up_outlined, 
-                         color: Colors.grey.shade500, 
-                         size: 20),
+                    Icon(Icons.thumb_up_outlined,
+                        color: Colors.grey.shade500, size: 20),
                     const SizedBox(width: 8),
-                    Icon(Icons.thumb_down_outlined, 
-                         color: Colors.grey.shade500, 
-                         size: 20),
+                    Icon(Icons.thumb_down_outlined,
+                        color: Colors.grey.shade500, size: 20),
                   ],
                 ),
                 TextButton(
@@ -227,7 +228,10 @@ class _AiTodoCardState extends State<AiTodoCard> {
             "assets/icons/task_icon.svg",
             height: 16,
             width: 16,
-            color: Colors.grey.shade500,
+            colorFilter: ColorFilter.mode(
+              Colors.grey.shade500,
+              BlendMode.src,
+            ),
           ),
           const SizedBox(width: 8),
           Expanded(

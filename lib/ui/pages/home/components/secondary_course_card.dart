@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:todo_ai/domain/model/todo_model.dart';
 
 class TodoCard extends StatelessWidget {
@@ -19,7 +18,7 @@ class TodoCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF7553F6).withOpacity(0.3),
+            color: const Color(0xFF7553F6).withValues(alpha:0.3),
             offset: const Offset(0, 4),
             blurRadius: 10,
           ),
@@ -52,7 +51,7 @@ class TodoCard extends StatelessWidget {
                       Text(
                         '10 Tasks, 10 done, 10 pending',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha:0.8),
                           fontSize: 14,
                         ),
                       ),
@@ -63,7 +62,7 @@ class TodoCard extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha:0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Stack(
@@ -73,7 +72,7 @@ class TodoCard extends StatelessWidget {
                         child: CustomPaint(
                           size: const Size(36, 36),
                           painter: HexagonPainter(
-                            color: Colors.white.withOpacity(0.3),
+                            color: Colors.white.withValues(alpha:0.3),
                           ),
                         ),
                       ),
@@ -134,10 +133,10 @@ class ProgressRing extends StatelessWidget {
   final Color color;
 
   const ProgressRing({
-    Key? key,
+    super.key,
     required this.progress,
     required this.color,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -163,7 +162,7 @@ class ProgressRingPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
-      ..color = color.withOpacity(0.2)
+      ..color = color.withValues(alpha:0.2)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4;
 

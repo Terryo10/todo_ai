@@ -206,7 +206,7 @@ class _CreateTodoDialogState extends State<CreateTodoDialog> {
                       _tasks.remove(task);
                     });
                   },
-                )).toList(),
+                )),
                 const SizedBox(height: 8),
               ],
               
@@ -240,7 +240,7 @@ class _CreateTodoDialogState extends State<CreateTodoDialog> {
                         _collaborators.remove(email);
                       });
                     },
-                  )).toList(),
+                  )),
                   ActionChip(
                     avatar: const Icon(Icons.add),
                     label: const Text('Add Collaborator'),
