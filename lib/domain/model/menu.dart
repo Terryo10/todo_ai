@@ -15,22 +15,22 @@ List<Menu> sidebarMenus = [
         artboard: "HOME",
         stateMachineName: "HOME_interactivity"),
   ),
+  // Menu(
+  //   title: "Search",
+  //   rive: RiveModel(
+  //       src: "assets/RiveAssets/icons.riv",
+  //       artboard: "SEARCH",
+  //       stateMachineName: "SEARCH_Interactivity"),
+  // ),
+  // Menu(
+  //   title: "Favorites",
+  //   rive: RiveModel(
+  //       src: "assets/RiveAssets/icons.riv",
+  //       artboard: "LIKE/STAR",
+  //       stateMachineName: "STAR_Interactivity"),
+  // ),
   Menu(
-    title: "Search",
-    rive: RiveModel(
-        src: "assets/RiveAssets/icons.riv",
-        artboard: "SEARCH",
-        stateMachineName: "SEARCH_Interactivity"),
-  ),
-  Menu(
-    title: "Favorites",
-    rive: RiveModel(
-        src: "assets/RiveAssets/icons.riv",
-        artboard: "LIKE/STAR",
-        stateMachineName: "STAR_Interactivity"),
-  ),
-  Menu(
-    title: "Help",
+    title: "My Todos",
     rive: RiveModel(
         src: "assets/RiveAssets/icons.riv",
         artboard: "CHAT",
@@ -38,20 +38,13 @@ List<Menu> sidebarMenus = [
   ),
 ];
 List<Menu> sidebarMenus2 = [
-  Menu(
-    title: "History",
-    rive: RiveModel(
-        src: "assets/RiveAssets/icons.riv",
-        artboard: "TIMER",
-        stateMachineName: "TIMER_Interactivity"),
-  ),
-  Menu(
-    title: "Notifications",
-    rive: RiveModel(
-        src: "assets/RiveAssets/icons.riv",
-        artboard: "BELL",
-        stateMachineName: "BELL_Interactivity"),
-  ),
+  // Menu(
+  //   title: "History",
+  //   rive: RiveModel(
+  //       src: "assets/RiveAssets/icons.riv",
+  //       artboard: "TIMER",
+  //       stateMachineName: "TIMER_Interactivity"),
+  // ),
   Menu(
     title: "Log Out",
     rive: RiveModel(

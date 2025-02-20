@@ -1,6 +1,8 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:todo_ai/domain/bloc/auth_bloc/auth_bloc.dart';
+import 'package:todo_ai/routes/router.gr.dart';
 
 import '../../../../domain/model/menu.dart';
 import '../../../../utils/rive_utils.dart';
@@ -61,6 +63,10 @@ class _SideBarState extends State<SideBar> {
                     menu: menu,
                     selectedMenu: selectedSideMenu,
                     press: () {
+                      if (menu.title.contains('My Todos')) {
+                        context.navigateTo(TodoRouteRoute());
+                        return;
+                      }
                       RiveUtils.chnageSMIBoolState(menu.rive.status!);
                       setState(() {
                         selectedSideMenu = menu;
