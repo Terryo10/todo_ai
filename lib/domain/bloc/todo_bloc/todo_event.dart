@@ -6,13 +6,18 @@ abstract class TodoEvent extends Equatable {
   @override
   List<Object> get props => [];
 }
+
 class LoadTodos extends TodoEvent {}
 
 class AddTodo extends TodoEvent {
   final String name;
+  final String createdBy;
   final List<String> collaborators;
 
-  const AddTodo({required this.name, required this.collaborators});
+  const AddTodo(
+      {required this.name,
+      required this.collaborators,
+      required this.createdBy});
 }
 
 class UpdateTodo extends TodoEvent {
