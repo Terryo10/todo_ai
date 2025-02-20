@@ -37,8 +37,8 @@ class _OnbodingScreenState extends State<OnbodingScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticatedState) {
-            context.navigateTo(EntryPointRoute());
-          } 
+          context.navigateTo(EntryPointRoute());
+        }
       },
       child: Scaffold(
         body: Stack(

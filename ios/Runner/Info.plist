@@ -46,7 +46,7 @@
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
 		<key>GIDClientID</key>
-        <string>1446296947297-sj6cb653v4gu7p82ejqhqsakokl9raoq.apps.googleusercontent.com</string>
+		<string>1446296947297-sj6cb653v4gu7p82ejqhqsakokl9raoq.apps.googleusercontent.com</string>
 		<key>FacebookAppID</key>
 		<string>601055342746611</string>
 		<key>FacebookClientToken</key>
@@ -54,22 +54,22 @@
 		<key>FacebookDisplayName</key>
 		<string>TaskWhiz</string>
 		<key>CFBundleURLTypes</key>
-        <array>
-            <!-- Google Sign-In -->
-            <dict>
-                <key>CFBundleURLSchemes</key>
-                <array>
-                    <string>com.googleusercontent.apps.1446296947297-sj6cb653v4gu7p82ejqhqsakokl9raoq</string>
-                </array>
-            </dict>
-            <!-- Facebook Sign-In -->
-            <dict>
-                <key>CFBundleURLSchemes</key>
-                <array>
-                    <string>fb601055342746611</string>
-                </array>
-            </dict>
-        </array>
+		<array>
+			<!-- Google Sign-In -->
+			<dict>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.googleusercontent.apps.1446296947297-sj6cb653v4gu7p82ejqhqsakokl9raoq</string>
+				</array>
+			</dict>
+			<!-- Facebook Sign-In -->
+			<dict>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>fb601055342746611</string>
+				</array>
+			</dict>
+		</array>
 		<key>LSApplicationQueriesSchemes</key>
 		<array>
 			<string>fbapi</string>
@@ -78,6 +78,8 @@
 			<string>fbshareextension</string>
 		</array>
 		<key>UIStatusBarHidden</key>
+		<true/>
+		<key>UIViewControllerBasedStatusBarAppearance</key>
 		<false/>
 	</dict>
 </plist>
