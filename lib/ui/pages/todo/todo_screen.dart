@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:todo_ai/ui/pages/todo/add_task_dialogue.dart';
 import 'package:todo_ai/ui/pages/todo/todo_card.dart';
 
+import '../../../domain/bloc/auth_bloc/auth_bloc.dart';
 import '../../../domain/bloc/todo_bloc/todo_bloc.dart';
 import '../../../domain/model/todo_model.dart';
 import 'task_item.dart';
@@ -37,9 +38,7 @@ class _TodoScreenState extends State<TodoScreenPage> {
 
     if (result != true) {
       // If dialog was cancelled or closed, go back
-      if (context.mounted) {
-        
-      }
+      if (context.mounted) {}
     }
   }
 
@@ -60,13 +59,11 @@ class _TodoScreenState extends State<TodoScreenPage> {
           }
 
           if (state is TodoLoaded) {
-            final uncompletedTodos = state.todos
-                .where((todo) => !todo.isCompleted)
-                .toList();
-            
-            final completedTodos = state.todos
-                .where((todo) => todo.isCompleted)
-                .toList();
+            final uncompletedTodos =
+                state.todos.where((todo) => !todo.isCompleted).toList();
+
+            final completedTodos =
+                state.todos.where((todo) => todo.isCompleted).toList();
 
             return CustomScrollView(
               slivers: [
@@ -81,7 +78,7 @@ class _TodoScreenState extends State<TodoScreenPage> {
                       ),
                     ),
                   ),
-                
+
                 SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) => TodoCard(
@@ -104,11 +101,9 @@ class _TodoScreenState extends State<TodoScreenPage> {
                           ),
                           const Spacer(),
                           IconButton(
-                            icon: Icon(
-                              showCompleted 
-                                ? Icons.visibility 
-                                : Icons.visibility_off
-                            ),
+                            icon: Icon(showCompleted
+                                ? Icons.visibility
+                                : Icons.visibility_off),
                             onPressed: () {
                               setState(() {
                                 showCompleted = !showCompleted;
@@ -188,7 +183,7 @@ class _CreateTodoDialogState extends State<CreateTodoDialog> {
                 },
               ),
               const SizedBox(height: 16),
-              
+
               // Tasks Section
               if (_tasks.isNotEmpty) ...[
                 const Text(
@@ -200,16 +195,16 @@ class _CreateTodoDialogState extends State<CreateTodoDialog> {
                 ),
                 const SizedBox(height: 8),
                 ..._tasks.map((task) => CreateTodoTaskListItem(
-                  task: task,
-                  onDelete: () {
-                    setState(() {
-                      _tasks.remove(task);
-                    });
-                  },
-                )),
+                      task: task,
+                      onDelete: () {
+                        setState(() {
+                          _tasks.remove(task);
+                        });
+                      },
+                    )),
                 const SizedBox(height: 8),
               ],
-              
+
               // Add Task Button
               Center(
                 child: TextButton.icon(
@@ -218,9 +213,9 @@ class _CreateTodoDialogState extends State<CreateTodoDialog> {
                   label: const Text('Add Task'),
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Collaborators Section
               const Text(
                 'Collaborators',
@@ -234,13 +229,13 @@ class _CreateTodoDialogState extends State<CreateTodoDialog> {
                 spacing: 8,
                 children: [
                   ..._collaborators.map((email) => Chip(
-                    label: Text(email),
-                    onDeleted: () {
-                      setState(() {
-                        _collaborators.remove(email);
-                      });
-                    },
-                  )),
+                        label: Text(email),
+                        onDeleted: () {
+                          setState(() {
+                            _collaborators.remove(email);
+                          });
+                        },
+                      )),
                   ActionChip(
                     avatar: const Icon(Icons.add),
                     label: const Text('Add Collaborator'),
@@ -257,37 +252,46 @@ class _CreateTodoDialogState extends State<CreateTodoDialog> {
           onPressed: () => Navigator.of(context).pop(false),
           child: const Text('Cancel'),
         ),
-        ElevatedButton(
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              context.read<TodoBloc>().add(AddTodo(
-                name: _nameController.text,
-                collaborators: _collaborators,
-              ));
-              
-              // Add tasks if any
-              if (_tasks.isNotEmpty) {
-                // Note: We need to get the todo ID from the state
-                // This is a simplified version
-                final todoState = context.read<TodoBloc>().state;
-                if (todoState is TodoLoaded) {
-                  final newTodo = todoState.todos.last;
-                  for (final task in _tasks) {
-                    context.read<TodoBloc>().add(AddTask(
-                      todoId: newTodo.id,
-                      taskName: task.name,
-                      assignedTo: task.assignedTo,
-                      reminderTime: task.reminderTime,
-                      isImportant: task.isImportant,
-                    ));
+        BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, state) {
+            if (state is AuthAuthenticatedState) {
+              return ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    context.read<TodoBloc>().add(AddTodo(
+                          createdBy: state.email,
+                          name: _nameController.text,
+                          collaborators: _collaborators,
+                        ));
+
+                    // Add tasks if any
+                    if (_tasks.isNotEmpty) {
+                      // Note: We need to get the todo ID from the state
+                      // This is a simplified version
+                      final todoState = context.read<TodoBloc>().state;
+                      if (todoState is TodoLoaded) {
+                        final newTodo = todoState.todos.last;
+                        for (final task in _tasks) {
+                          context.read<TodoBloc>().add(AddTask(
+                                todoId: newTodo.id,
+                                taskName: task.name,
+                                assignedTo: task.assignedTo,
+                                reminderTime: task.reminderTime,
+                                isImportant: task.isImportant,
+                              ));
+                        }
+                      }
+                    }
+
+                    Navigator.of(context).pop(true);
                   }
-                }
-              }
-              
-              Navigator.of(context).pop(true);
+                },
+                child: const Text('Create'),
+              );
             }
+
+            return Container();
           },
-          child: const Text('Create'),
         ),
       ],
     );
@@ -298,7 +302,7 @@ class _CreateTodoDialogState extends State<CreateTodoDialog> {
       context: context,
       builder: (context) => const AddTaskDialog(),
     );
-    
+
     if (task != null) {
       setState(() {
         _tasks.add(task);
@@ -311,7 +315,7 @@ class _CreateTodoDialogState extends State<CreateTodoDialog> {
       context: context,
       builder: (context) => const AddCollaboratorDialog(),
     );
-    
+
     if (email != null && email.isNotEmpty) {
       setState(() {
         _collaborators.add(email);

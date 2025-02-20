@@ -23,44 +23,41 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     on<LoadTodos>((event, emit) async {
       await _onLoadTodos(event, emit);
     });
-    
+
     on<AddTodo>((event, emit) async {
       await _onAddTodo(event, emit);
     });
-    
+
     on<UpdateTodo>((event, emit) async {
       await _onUpdateTodo(event, emit);
     });
-    
+
     on<DeleteTodo>((event, emit) async {
       await _onDeleteTodo(event, emit);
     });
-    
+
     on<AddTask>((event, emit) async {
       await _onAddTask(event, emit);
     });
-    
+
     on<UpdateTask>((event, emit) async {
       await _onUpdateTask(event, emit);
     });
-    
+
     on<DeleteTask>((event, emit) async {
       await _onDeleteTask(event, emit);
     });
 
     // Set up connectivity listener
-    _connectivitySubscription = _repository
-        .watchConnectivity()
-        .listen((connectivityResult) {
+    _connectivitySubscription =
+        _repository.watchConnectivity().listen((connectivityResult) {
       if (connectivityResult != ConnectivityResult.none) {
         _repository.syncWithFirebase();
       }
     });
 
     // Set up todos listener
-    _todosSubscription = _repository
-        .watchTodos()
-        .listen((todos) {
+    _todosSubscription = _repository.watchTodos().listen((todos) {
       add(LoadTodos()); // Trigger a reload when local data changes
     });
   }
@@ -77,7 +74,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     }
   }
 
-  Future<void> _onAddTodo(AddTodo event, Emitter<TodoState> emit) async {
+  Future _onAddTodo(AddTodo event, Emitter<TodoState> emit) async {
     try {
       final currentState = state;
       if (currentState is TodoLoaded) {
@@ -85,7 +82,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
           id: const Uuid().v4(),
           name: event.name,
           createdTime: DateTime.now(),
-          collaborators: event.collaborators,
+          collaborators: [event.createdBy],
           tasks: [],
         );
 
@@ -127,7 +124,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       if (currentState is TodoLoaded) {
         final todos = _repository.getLocalTodos();
         final todo = todos.firstWhere((todo) => todo.id == event.todoId);
-        
+
         final newTask = Task(
           id: const Uuid().v4(),
           name: event.taskName,
@@ -175,9 +172,10 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
         final todos = _repository.getLocalTodos();
         final todo = todos.firstWhere((todo) => todo.id == event.todoId);
 
-        final updatedTasks = todo.tasks.where((task) => task.id != event.taskId).toList();
+        final updatedTasks =
+            todo.tasks.where((task) => task.id != event.taskId).toList();
         final updatedTodo = todo.copyWith(tasks: updatedTasks);
-        
+
         await _repository.saveLocalTodo(updatedTodo);
         // State will be updated via the todos listener
       }
