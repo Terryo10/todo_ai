@@ -8,9 +8,9 @@ class TodoRepository {
   final FirebaseFirestore _firestore;
   final Box<Todo> _todoBox;
   final Connectivity _connectivity;
-  
+
   static const String _boxName = 'todos';
-  
+
   TodoRepository({
     required FirebaseFirestore firestore,
     required Box<Todo> todoBox,
@@ -81,7 +81,11 @@ class TodoRepository {
 
     try {
       // Get all todos from Firebase
-      final firebaseTodos = await _firestore.collection('todos').get();
+      final firebaseTodos = await _firestore
+          .collection('todos')
+          // .where('collaborators', arrayContains: '')
+          // .where('isCompleted', isEqualTo: true)
+          .get();
       final firebaseTodosMap = {
         for (var doc in firebaseTodos.docs)
           doc.id: Todo.fromMap({...doc.data(), 'id': doc.id})
@@ -94,7 +98,7 @@ class TodoRepository {
       // Sync Firebase to local
       for (var firebaseTodo in firebaseTodosMap.values) {
         final localTodo = localTodosMap[firebaseTodo.id];
-        if (localTodo == null || 
+        if (localTodo == null ||
             _isFirebaseTodoNewer(firebaseTodo, localTodo)) {
           await _todoBox.put(firebaseTodo.id, firebaseTodo);
         }
