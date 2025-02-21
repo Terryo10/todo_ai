@@ -23,6 +23,38 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(UnAuthenticatedState());
     });
 
+    authRepository.authStateChanges.listen((user) {
+      if (user != null) {
+        add(AuthStateChanged(user));
+      } else {
+        add(LogOut());
+      }
+    });
+
+    on<CheckAuthStatus>((event, emit) async {
+      final currentUser = authRepository.getCurrentUser();
+      if (currentUser != null) {
+        emit(AuthAuthenticatedState(
+          userId: currentUser.uid,
+          email: currentUser.email ?? '',
+          displayName: currentUser.displayName ?? '',
+          provider: currentUser.provider,
+        ));
+      } else {
+        emit(UnAuthenticatedState());
+      }
+    });
+
+    on<AuthStateChanged>((event, emit) {
+      final user = event.user;
+      emit(AuthAuthenticatedState(
+        userId: user.uid,
+        email: user.email ?? '',
+        displayName: user.displayName ?? '',
+        provider: user.provider,
+      ));
+    });
+
     on<LoginWithGoogle>((event, emit) async {
       try {
         emit(AuthLoadingState());

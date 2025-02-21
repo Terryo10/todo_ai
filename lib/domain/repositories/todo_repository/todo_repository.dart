@@ -132,7 +132,6 @@ class TodoRepository {
     return _connectivity.onConnectivityChanged;
   }
 }
-
 @HiveType(typeId: 0)
 class TodoAdapter extends TypeAdapter<Todo> {
   @override
@@ -140,21 +139,34 @@ class TodoAdapter extends TypeAdapter<Todo> {
 
   @override
   Todo read(BinaryReader reader) {
-    return Todo(
-      id: reader.readString(),
-      uid: reader.readString(), // Added uid
-      name: reader.readString(),
-      createdTime: DateTime.fromMillisecondsSinceEpoch(reader.readInt()),
-      collaborators: List<String>.from(reader.readList()),
-      isCompleted: reader.readBool(),
-      tasks: List<Task>.from(reader.readList()),
-    );
+    try {
+      return Todo(
+        id: reader.readString(),
+        uid: reader.readString(), // Add uid
+        name: reader.readString(),
+        createdTime: DateTime.fromMillisecondsSinceEpoch(reader.readInt()),
+        collaborators: List<String>.from(reader.readList()),
+        isCompleted: reader.readBool(),
+        tasks: List<Task>.from(reader.readList()),
+      );
+    } catch (e) {
+      // If reading fails, return a default Todo
+      // This helps handle migration of old data
+      return Todo(
+        id: '',
+        uid: '',
+        name: '',
+        createdTime: DateTime.now(),
+        collaborators: [],
+        tasks: [],
+      );
+    }
   }
 
   @override
   void write(BinaryWriter writer, Todo obj) {
     writer.writeString(obj.id);
-    writer.writeString(obj.uid); // Added uid
+    writer.writeString(obj.uid); // Add uid
     writer.writeString(obj.name);
     writer.writeInt(obj.createdTime.millisecondsSinceEpoch);
     writer.writeList(obj.collaborators);
@@ -170,23 +182,32 @@ class TaskAdapter extends TypeAdapter<Task> {
 
   @override
   Task read(BinaryReader reader) {
-    return Task(
-      id: reader.readString(),
-      todoId: reader.readString(), // Added todoId
-      name: reader.readString(),
-      assignedTo: reader.readString(),
-      reminderTime: reader.readInt() == 0 
-          ? null 
-          : DateTime.fromMillisecondsSinceEpoch(reader.readInt()),
-      isImportant: reader.readBool(),
-      isCompleted: reader.readBool(),
-    );
+    try {
+      return Task(
+        id: reader.readString(),
+        todoId: reader.readString(), // Add todoId
+        name: reader.readString(),
+        assignedTo: reader.readString(),
+        reminderTime: reader.readInt() == 0 
+            ? null 
+            : DateTime.fromMillisecondsSinceEpoch(reader.readInt()),
+        isImportant: reader.readBool(),
+        isCompleted: reader.readBool(),
+      );
+    } catch (e) {
+      // If reading fails, return a default Task
+      return Task(
+        id: '',
+        todoId: '',
+        name: '',
+      );
+    }
   }
 
   @override
   void write(BinaryWriter writer, Task obj) {
     writer.writeString(obj.id);
-    writer.writeString(obj.todoId); // Added todoId
+    writer.writeString(obj.todoId); // Add todoId
     writer.writeString(obj.name);
     writer.writeString(obj.assignedTo ?? '');
     writer.writeInt(obj.reminderTime?.millisecondsSinceEpoch ?? 0);
