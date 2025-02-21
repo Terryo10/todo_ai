@@ -87,25 +87,27 @@ class _SideBarState extends State<SideBar> {
                       .copyWith(color: Colors.white70),
                 ),
               ),
-              ...sidebarMenus2.map((menu) => SideMenu(
-                    menu: menu,
-                    selectedMenu: selectedSideMenu,
-                    press: () {
-                      if (menu.title.contains('Log')) {
-                        BlocProvider.of<AuthBloc>(context).add(LogOut());
-                        Navigator.of(context).pop();
-                      } else {
-                        RiveUtils.chnageSMIBoolState(menu.rive.status!);
-                        setState(() {
-                          selectedSideMenu = menu;
-                        });
-                      }
-                    },
-                    riveOnInit: (artboard) {
-                      menu.rive.status = RiveUtils.getRiveInput(artboard,
-                          stateMachineName: menu.rive.stateMachineName);
-                    },
-                  )),
+              ...sidebarMenus2.map(
+                (menu) => SideMenu(
+                  menu: menu,
+                  selectedMenu: selectedSideMenu,
+                  press: () {
+                    if (menu.title.contains('Log')) {
+                      BlocProvider.of<AuthBloc>(context).add(LogOut());
+                      Navigator.of(context).pop();
+                    } else {
+                      RiveUtils.chnageSMIBoolState(menu.rive.status!);
+                      setState(() {
+                        selectedSideMenu = menu;
+                      });
+                    }
+                  },
+                  riveOnInit: (artboard) {
+                    menu.rive.status = RiveUtils.getRiveInput(artboard,
+                        stateMachineName: menu.rive.stateMachineName);
+                  },
+                ),
+              ),
             ],
           ),
         ),

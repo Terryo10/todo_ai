@@ -42,12 +42,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
        try {
         
 
-        emit(AuthAuthenticatedState(
-          userId: 'kkkkk',
-          email: 'tapiwatererai@outlook.com',
-          displayName:'Tapiwa Terereai',
-          provider: 'google',
-        ));
+      
 
        }catch(_){
        }

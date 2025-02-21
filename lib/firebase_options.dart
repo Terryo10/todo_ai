@@ -60,11 +60,13 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAsMmAWAy2SnE03YcKh7wRQX7J_P54Ggaw',
-    appId: '1:446296947297:ios:0ffeb9f980a14502d90820',
+    appId: '1:446296947297:ios:da79dbeb0f02df5bd90820',
     messagingSenderId: '446296947297',
     projectId: 'taskwhiz-11cbf',
     storageBucket: 'taskwhiz-11cbf.firebasestorage.app',
-    iosBundleId: 'com.example.todoAi',
+    androidClientId: '446296947297-a3fdgobmq66fi092po8noajts7tb87jb.apps.googleusercontent.com',
+    iosClientId: '446296947297-ta2oo4qjj4dq5d2hntlhd2rhe9hd566u.apps.googleusercontent.com',
+    iosBundleId: 'com.taskwhiz.todoai',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(

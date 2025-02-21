@@ -23,7 +23,9 @@ void main() async {
   );
 
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-  final GoogleSignIn googleSignIn = GoogleSignIn();
+  final GoogleSignIn googleSignIn = GoogleSignIn(
+      clientId:
+          '446296947297-sj6cb653v4gu7p82ejqhqsakokl9raoq.apps.googleusercontent.com');
   final FacebookAuth facebookAuth = FacebookAuth.instance;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 

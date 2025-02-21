@@ -55,10 +55,13 @@ class AuthProvider {
   Future<UserModel> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-      if (googleUser == null)  throw ('Failed to login with google');
+      if (googleUser == null) {
+        throw 'Failed to login with Google';
+      }
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
+
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
@@ -66,14 +69,19 @@ class AuthProvider {
 
       final userCredential =
           await firebaseAuth.signInWithCredential(credential);
-      if (userCredential.user == null) throw ('Failed to login with google');
+      if (userCredential.user == null) {
+        throw 'Failed to login with Google';
+      }
+
       final user = _userFromFirebase(userCredential.user!, 'google');
 
       await _saveUserToFirestore(user);
       await saveUserToStorage(user);
       return user;
+    } on FirebaseAuthException catch (e) {
+      throw 'FirebaseAuthException: ${e.code} - ${e.message}';
     } catch (e) {
-      throw (e.toString());
+      throw 'Failed to login with Google: $e';
     }
   }
 
@@ -108,7 +116,6 @@ class AuthProvider {
       await _saveUserToFirestore(user);
       return user;
     } catch (e) {
-      
       rethrow;
     }
   }
@@ -118,7 +125,6 @@ class AuthProvider {
       final LoginResult result = await facebookAuth.login();
 
       if (result.status != LoginStatus.success) {
-
         throw (result.message ?? '');
       }
 
@@ -145,7 +151,6 @@ class AuthProvider {
     try {
       final currentUser = firebaseAuth.currentUser;
       if (currentUser != null) {
-  
         await firestore.collection('users').doc(currentUser.uid).update({
           'lastLoginAt': DateTime.now().toIso8601String(),
         });
@@ -157,7 +162,6 @@ class AuthProvider {
         facebookAuth.logOut(),
       ]);
     } catch (e) {
-
       rethrow;
     }
   }
