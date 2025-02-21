@@ -27,14 +27,16 @@ class TodoRepository {
     return await Hive.openBox<Todo>(_boxName);
   }
 
-  // Stream of todos from local storage
-  Stream<List<Todo>> watchTodos() {
-    return _todoBox.watch().map((_) => _todoBox.values.toList());
+  // Stream of todos from local storage for a specific user
+  Stream<List<Todo>> watchUserTodos(String uid) {
+    return _todoBox.watch().map((_) => 
+      _todoBox.values.where((todo) => todo.uid == uid).toList()
+    );
   }
 
-  // Get todos from local storage
-  List<Todo> getLocalTodos() {
-    return _todoBox.values.toList();
+  // Get todos from local storage for a specific user
+  List<Todo> getLocalUserTodos(String uid) {
+    return _todoBox.values.where((todo) => todo.uid == uid).toList();
   }
 
   // Add or update todo locally
@@ -59,7 +61,6 @@ class TodoRepository {
             .set(todo.toMap(), SetOptions(merge: true));
       } catch (e) {
         print('Error syncing todo to Firebase: $e');
-        // You might want to implement a retry mechanism here
       }
     }
   }
@@ -75,24 +76,24 @@ class TodoRepository {
     }
   }
 
-  // Sync all local todos with Firebase
-  Future<void> syncWithFirebase() async {
+  // Sync all local todos with Firebase for a specific user
+  Future<void> syncWithFirebase(String uid) async {
     if (!await _isOnline()) return;
 
     try {
-      // Get all todos from Firebase
+      // Get all todos from Firebase for the specific user
       final firebaseTodos = await _firestore
           .collection('todos')
-          // .where('collaborators', arrayContains: '')
-          // .where('isCompleted', isEqualTo: true)
+          .where('uid', isEqualTo: uid)
           .get();
+      
       final firebaseTodosMap = {
         for (var doc in firebaseTodos.docs)
           doc.id: Todo.fromMap({...doc.data(), 'id': doc.id})
       };
 
-      // Get all local todos
-      final localTodos = _todoBox.values.toList();
+      // Get all local todos for the user
+      final localTodos = _todoBox.values.where((todo) => todo.uid == uid).toList();
       final localTodosMap = {for (var todo in localTodos) todo.id: todo};
 
       // Sync Firebase to local
@@ -118,26 +119,20 @@ class TodoRepository {
     }
   }
 
-  // Helper to check if Firebase todo is newer than local todo
   bool _isFirebaseTodoNewer(Todo firebaseTodo, Todo localTodo) {
-    // You might want to add a lastModified timestamp to your Todo model
-    // For now, we'll just check the creation time
     return firebaseTodo.createdTime.isAfter(localTodo.createdTime);
   }
 
-  // Check if device is online
   Future<bool> _isOnline() async {
     final connectivityResult = await _connectivity.checkConnectivity();
     return connectivityResult != ConnectivityResult.none;
   }
 
-  // Listen to connectivity changes and sync when online
   Stream<ConnectivityResult> watchConnectivity() {
     return _connectivity.onConnectivityChanged;
   }
 }
 
-// Hive type adapters
 @HiveType(typeId: 0)
 class TodoAdapter extends TypeAdapter<Todo> {
   @override
@@ -145,10 +140,9 @@ class TodoAdapter extends TypeAdapter<Todo> {
 
   @override
   Todo read(BinaryReader reader) {
-    // Implement reading from Hive
-    // This is a simplified version - you'll need to add all fields
     return Todo(
       id: reader.readString(),
+      uid: reader.readString(), // Added uid
       name: reader.readString(),
       createdTime: DateTime.fromMillisecondsSinceEpoch(reader.readInt()),
       collaborators: List<String>.from(reader.readList()),
@@ -159,9 +153,8 @@ class TodoAdapter extends TypeAdapter<Todo> {
 
   @override
   void write(BinaryWriter writer, Todo obj) {
-    // Implement writing to Hive
-    // This is a simplified version - you'll need to add all fields
     writer.writeString(obj.id);
+    writer.writeString(obj.uid); // Added uid
     writer.writeString(obj.name);
     writer.writeInt(obj.createdTime.millisecondsSinceEpoch);
     writer.writeList(obj.collaborators);
@@ -177,12 +170,14 @@ class TaskAdapter extends TypeAdapter<Task> {
 
   @override
   Task read(BinaryReader reader) {
-    // Implement reading from Hive
     return Task(
       id: reader.readString(),
+      todoId: reader.readString(), // Added todoId
       name: reader.readString(),
       assignedTo: reader.readString(),
-      reminderTime: DateTime.fromMillisecondsSinceEpoch(reader.readInt()),
+      reminderTime: reader.readInt() == 0 
+          ? null 
+          : DateTime.fromMillisecondsSinceEpoch(reader.readInt()),
       isImportant: reader.readBool(),
       isCompleted: reader.readBool(),
     );
@@ -190,8 +185,8 @@ class TaskAdapter extends TypeAdapter<Task> {
 
   @override
   void write(BinaryWriter writer, Task obj) {
-    // Implement writing to Hive
     writer.writeString(obj.id);
+    writer.writeString(obj.todoId); // Added todoId
     writer.writeString(obj.name);
     writer.writeString(obj.assignedTo ?? '');
     writer.writeInt(obj.reminderTime?.millisecondsSinceEpoch ?? 0);

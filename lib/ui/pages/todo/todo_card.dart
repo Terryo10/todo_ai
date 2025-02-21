@@ -137,10 +137,10 @@ class TodoCard extends StatelessWidget {
     );
   }
 
-  Future<void> _showAddTaskDialog(BuildContext context) async {
+   Future<void> _showAddTaskDialog(BuildContext context) async {
     final task = await showDialog<Task>(
       context: context,
-      builder: (context) => const AddTaskDialog(),
+      builder: (context) => AddTaskDialog(todoId: todo.id),
     );
     
     if (task != null && context.mounted) {

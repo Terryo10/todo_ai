@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 import '../../../domain/model/todo_model.dart';
 
 class AddTaskDialog extends StatefulWidget {
-  const AddTaskDialog({super.key});
+  final String todoId; // Add todoId parameter
+
+  const AddTaskDialog({
+    super.key,
+    required this.todoId, // Make todoId required
+  });
 
   @override
   State<AddTaskDialog> createState() => _AddTaskDialogState();
@@ -122,7 +128,8 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               final task = Task(
-                id: '', // Will be set when added to todo
+                id: const Uuid().v4(), // Generate a new UUID for the task
+                todoId: widget.todoId, // Add the todoId
                 name: _nameController.text,
                 assignedTo: _assignedTo,
                 reminderTime: _reminderTime,

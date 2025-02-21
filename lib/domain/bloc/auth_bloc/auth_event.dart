@@ -14,3 +14,11 @@ class LoginWithApple extends AuthEvent {}
 class LoginWithFacebook extends AuthEvent {}
 
 class LogOut extends AuthEvent {}
+
+class CheckAuthStatus extends AuthEvent {}
+
+class AuthStateChanged extends AuthEvent {
+  final UserModel user;
+
+  const AuthStateChanged(this.user);
+}

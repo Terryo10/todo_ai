@@ -97,7 +97,7 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Hello, Tapiwa',
+                'Hello',
                 style: Theme.of(context).textTheme.headlineSmall!.copyWith(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
@@ -105,7 +105,7 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 4),
               Text(
-                '${recentCourses.length} tasks pending',
+                'You have ${recentCourses.length} tasks pending',
                 style: TextStyle(color: Colors.grey[600]),
               ),
             ],
@@ -124,7 +124,7 @@ class _HomePageState extends State<HomePage> {
                 height: 24,
                 colorFilter: ColorFilter.mode(
                   Theme.of(context).primaryColor,
-                  BlendMode.src,
+                  BlendMode.srcIn,
                 ),
               ),
             ),
@@ -154,7 +154,8 @@ class _HomePageState extends State<HomePage> {
                 setState(() => _selectedFilter = filter);
               },
               backgroundColor: Colors.grey[200],
-              selectedColor: Theme.of(context).primaryColor.withValues(alpha:0.2),
+              selectedColor:
+                  Theme.of(context).primaryColor.withValues(alpha: 0.2),
               labelStyle: TextStyle(
                 color: isSelected
                     ? Theme.of(context).primaryColor

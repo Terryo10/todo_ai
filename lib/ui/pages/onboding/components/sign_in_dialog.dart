@@ -48,7 +48,7 @@ class _SignInDialog extends StatelessWidget {
       child: Center(
         // ignore: deprecated_member_use
         child: WillPopScope(
-          onWillPop: () async{
+          onWillPop: () async {
             onDismiss();
             return true;
           },
@@ -65,45 +65,56 @@ class _SignInDialog extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    "Unlock Smart Productivity!",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E1E1E),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  _SignInOptions(),
-                  _SignInButton(
-                    icon: "assets/icons/google.svg",
-                    text: "Continue with Google",
-                    backgroundColor: Colors.white,
-                    textColor: Colors.black87,
-                    borderColor: Colors.grey.shade300,
-                    authEvent: LoginWithGoogle(),
-                  ),
-                  _SignInButton(
-                    icon: "assets/icons/facebook.svg",
-                    text: "Continue with Facebook",
-                    backgroundColor: const Color(0xFF1877F2),
-                    textColor: Colors.white,
-                    iconColor: Colors.white,
-                    authEvent: LoginWithFacebook(),
-                  ),
-                  if (Platform.isIOS)
-                    _SignInButton(
-                      icon: "assets/icons/apple.svg",
-                      text: "Continue with Apple",
-                      backgroundColor: Colors.black,
-                      textColor: Colors.white,
-                      iconColor: Colors.white,
-                      authEvent: LoginWithApple(),
-                    ), // Extracted BlocBuilder
-                ],
+              child: BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, state) {
+                  if (state is AuthLoadingState) {
+                    return SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2.5),
+                    );
+                  }
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        "Unlock Smart Productivity!",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E1E1E),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      _SignInOptions(),
+                      _SignInButton(
+                        icon: "assets/icons/google.svg",
+                        text: "Continue with Google",
+                        backgroundColor: Colors.white,
+                        textColor: Colors.black87,
+                        borderColor: Colors.grey.shade300,
+                        authEvent: LoginWithGoogle(),
+                      ),
+                      _SignInButton(
+                        icon: "assets/icons/facebook.svg",
+                        text: "Continue with Facebook",
+                        backgroundColor: const Color(0xFF1877F2),
+                        textColor: Colors.white,
+                        iconColor: Colors.white,
+                        authEvent: LoginWithFacebook(),
+                      ),
+                      if (Platform.isIOS)
+                        _SignInButton(
+                          icon: "assets/icons/apple.svg",
+                          text: "Continue with Apple",
+                          backgroundColor: Colors.black,
+                          textColor: Colors.white,
+                          iconColor: Colors.white,
+                          authEvent: LoginWithApple(),
+                        ), // Extracted BlocBuilder
+                    ],
+                  );
+                },
               ),
             ),
           ),
@@ -262,8 +273,12 @@ class _SignInButton extends StatelessWidget {
                         icon,
                         height: 24,
                         width: 24,
-                        colorFilter: icon.contains('google') ? null :ColorFilter.mode(
-                            iconColor ?? Colors.white, BlendMode.srcIn,),
+                        colorFilter: icon.contains('google')
+                            ? null
+                            : ColorFilter.mode(
+                                iconColor ?? Colors.white,
+                                BlendMode.srcIn,
+                              ),
                       ),
                       const SizedBox(width: 12),
                       Text(

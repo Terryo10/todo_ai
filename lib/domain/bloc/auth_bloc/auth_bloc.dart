@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../model/user_model.dart';
 import '../../repositories/auth_repository/auth_repository.dart';
 import '../cache_bloc/cache_bloc.dart';
 
@@ -38,14 +39,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     });
 
-    on<LoginWithApple>((event, emit) {
-       try {
-        
+    on<LoginWithApple>((event, emit) async {
+      try {
+        emit(AuthLoadingState());
+        final result = await authRepository.loginWithApple();
 
-      
-
-       }catch(_){
-       }
+        emit(AuthAuthenticatedState(
+          userId: result.uid,
+          email: result.email ?? '',
+          displayName: result.displayName ?? '',
+          provider: 'google',
+        ));
+      } catch (e) {
+        emit(AuthErrorState('Apple sign in error: ${e.toString()}'));
+      }
     });
 
     on<LoginWithFacebook>((event, emit) async {

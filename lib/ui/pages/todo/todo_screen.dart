@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:intl/intl.dart';
 import 'package:todo_ai/ui/pages/todo/add_task_dialogue.dart';
 import 'package:todo_ai/ui/pages/todo/todo_card.dart';
 
 import '../../../domain/bloc/auth_bloc/auth_bloc.dart';
 import '../../../domain/bloc/todo_bloc/todo_bloc.dart';
 import '../../../domain/model/todo_model.dart';
-import 'task_item.dart';
 
 @RoutePage()
 class TodoScreenPage extends StatefulWidget {
@@ -23,22 +23,19 @@ class _TodoScreenState extends State<TodoScreenPage> {
   @override
   void initState() {
     super.initState();
-    // Show create todo dialog on init
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showCreateTodoDialog();
-    });
+    // Load todos when screen opens
+    context.read<TodoBloc>().add(LoadTodos());
   }
 
   Future<void> _showCreateTodoDialog() async {
     final result = await showDialog<bool>(
       context: context,
-      barrierDismissible: false,
       builder: (context) => const CreateTodoDialog(),
     );
 
-    if (result != true) {
-      // If dialog was cancelled or closed, go back
-      if (context.mounted) {}
+    if (result == true && context.mounted) {
+      // Reload todos after creating new one
+      context.read<TodoBloc>().add(LoadTodos());
     }
   }
 
@@ -61,7 +58,6 @@ class _TodoScreenState extends State<TodoScreenPage> {
           if (state is TodoLoaded) {
             final uncompletedTodos =
                 state.todos.where((todo) => !todo.isCompleted).toList();
-
             final completedTodos =
                 state.todos.where((todo) => todo.isCompleted).toList();
 
@@ -158,6 +154,34 @@ class _CreateTodoDialogState extends State<CreateTodoDialog> {
     super.dispose();
   }
 
+  Future<void> _showAddTaskDialog() async {
+    final temporaryTodoId = 'temp-${DateTime.now().millisecondsSinceEpoch}';
+
+    final task = await showDialog<Task>(
+      context: context,
+      builder: (context) => AddTaskDialog(todoId: temporaryTodoId),
+    );
+
+    if (task != null) {
+      setState(() {
+        _tasks.add(task);
+      });
+    }
+  }
+
+  Future<void> _showAddCollaboratorDialog() async {
+    final email = await showDialog<String>(
+      context: context,
+      builder: (context) => const AddCollaboratorDialog(),
+    );
+
+    if (email != null && email.isNotEmpty) {
+      setState(() {
+        _collaborators.add(email);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -208,7 +232,7 @@ class _CreateTodoDialogState extends State<CreateTodoDialog> {
               // Add Task Button
               Center(
                 child: TextButton.icon(
-                  onPressed: () => _showAddTaskDialog(),
+                  onPressed: _showAddTaskDialog,
                   icon: const Icon(Icons.add),
                   label: const Text('Add Task'),
                 ),
@@ -239,7 +263,7 @@ class _CreateTodoDialogState extends State<CreateTodoDialog> {
                   ActionChip(
                     avatar: const Icon(Icons.add),
                     label: const Text('Add Collaborator'),
-                    onPressed: () => _showAddCollaboratorDialog(),
+                    onPressed: _showAddCollaboratorDialog,
                   ),
                 ],
               ),
@@ -258,29 +282,31 @@ class _CreateTodoDialogState extends State<CreateTodoDialog> {
               return ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
+                    // Create the todo
                     context.read<TodoBloc>().add(AddTodo(
-                          createdBy: state.email,
                           name: _nameController.text,
-                          collaborators: _collaborators,
                         ));
 
-                    // Add tasks if any
+                    // Add tasks after todo is created
                     if (_tasks.isNotEmpty) {
-                      // Note: We need to get the todo ID from the state
-                      // This is a simplified version
-                      final todoState = context.read<TodoBloc>().state;
-                      if (todoState is TodoLoaded) {
-                        final newTodo = todoState.todos.last;
-                        for (final task in _tasks) {
-                          context.read<TodoBloc>().add(AddTask(
-                                todoId: newTodo.id,
-                                taskName: task.name,
-                                assignedTo: task.assignedTo,
-                                reminderTime: task.reminderTime,
-                                isImportant: task.isImportant,
-                              ));
+                      context.read<TodoBloc>().stream.listen((state) {
+                        if (state is TodoLoaded) {
+                          final newTodo = state.todos.firstWhere(
+                            (todo) => todo.name == _nameController.text,
+                            orElse: () => throw Exception('Todo not found'),
+                          );
+
+                          for (final task in _tasks) {
+                            context.read<TodoBloc>().add(AddTask(
+                                  todoId: newTodo.id,
+                                  taskName: task.name,
+                                  assignedTo: task.assignedTo,
+                                  reminderTime: task.reminderTime,
+                                  isImportant: task.isImportant,
+                                ));
+                          }
                         }
-                      }
+                      });
                     }
 
                     Navigator.of(context).pop(true);
@@ -289,38 +315,43 @@ class _CreateTodoDialogState extends State<CreateTodoDialog> {
                 child: const Text('Create'),
               );
             }
-
             return Container();
           },
         ),
       ],
     );
   }
+}
 
-  Future<void> _showAddTaskDialog() async {
-    final task = await showDialog<Task>(
-      context: context,
-      builder: (context) => const AddTaskDialog(),
+class CreateTodoTaskListItem extends StatelessWidget {
+  final Task task;
+  final VoidCallback onDelete;
+
+  const CreateTodoTaskListItem({
+    super.key,
+    required this.task,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(task.name),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (task.assignedTo != null) Text('Assigned to: ${task.assignedTo}'),
+          if (task.reminderTime != null)
+            Text(
+                'Reminder: ${DateFormat.yMMMd().add_jm().format(task.reminderTime!)}'),
+        ],
+      ),
+      trailing: IconButton(
+        icon: const Icon(Icons.delete),
+        onPressed: onDelete,
+      ),
+      leading:
+          task.isImportant ? const Icon(Icons.star, color: Colors.amber) : null,
     );
-
-    if (task != null) {
-      setState(() {
-        _tasks.add(task);
-      });
-    }
-  }
-
-  Future<void> _showAddCollaboratorDialog() async {
-    final email = await showDialog<String>(
-      context: context,
-      builder: (context) => const AddCollaboratorDialog(),
-    );
-
-    if (email != null && email.isNotEmpty) {
-      setState(() {
-        _collaborators.add(email);
-      });
-    }
   }
 }
-// Continue with TodoCard, TaskListItem, AddTaskDialog, and AddCollaboratorDialog...

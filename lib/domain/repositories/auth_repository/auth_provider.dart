@@ -85,40 +85,59 @@ class AuthProvider {
     }
   }
 
-  Future<UserModel?> signInWithApple() async {
-    try {
-      final appleCredential = await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
-        ],
-      );
+ Future<UserModel> signInWithApple() async {
+  try {
+    final appleCredential = await SignInWithApple.getAppleIDCredential(
+      scopes: [
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName,
+      ],
+    );
 
-      final oauthCredential = OAuthProvider('apple.com').credential(
-        idToken: appleCredential.identityToken,
-        accessToken: appleCredential.authorizationCode,
-      );
+    final oauthCredential = OAuthProvider('apple.com').credential(
+      idToken: appleCredential.identityToken,
+      accessToken: appleCredential.authorizationCode,
+    );
 
-      final userCredential =
-          await firebaseAuth.signInWithCredential(oauthCredential);
-      if (userCredential.user == null) return null;
-
-      // For Apple Sign In, we need to handle the display name specially
-      // because it's only provided on the first sign-in
-      // String? displayName;
-      // if (appleCredential.givenName != null &&
-      //     appleCredential.familyName != null) {
-      //   displayName =
-      //       '${appleCredential.givenName} ${appleCredential.familyName}';
-      // }
-
-      final user = _userFromFirebase(userCredential.user!, 'apple');
-      await _saveUserToFirestore(user);
-      return user;
-    } catch (e) {
-      rethrow;
+    final userCredential = await firebaseAuth.signInWithCredential(oauthCredential);
+    
+    // Check if we got a name from Apple
+    String? displayName;
+    if (appleCredential.givenName != null && appleCredential.familyName != null) {
+      displayName = '${appleCredential.givenName} ${appleCredential.familyName}';
+      
+      // Store the name in Firestore since Apple only provides it once
+      await firestore.collection('users').doc(userCredential.user!.uid).set({
+        'displayName': displayName,
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } else {
+      // Try to get the stored name from Firestore
+      final userDoc = await firestore.collection('users').doc(userCredential.user!.uid).get();
+      if (userDoc.exists) {
+        displayName = userDoc.data()?['displayName'];
+      }
     }
+
+    final now = DateTime.now();
+
+    final user = UserModel(
+      uid: userCredential.user!.uid,
+      email: userCredential.user!.email ?? '',
+      displayName: displayName ?? 'Apple User',
+      provider: 'apple',
+      createdAt: now,
+      lastLoginAt: now, 
+
+    );
+
+    await _saveUserToFirestore(user);
+    await saveUserToStorage(user);
+    return user;
+  } catch (e) {
+    throw (e.toString());
   }
+}
 
   Future<UserModel> signInWithFacebook() async {
     try {

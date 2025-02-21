@@ -15,7 +15,11 @@ class AppBlocs extends StatelessWidget {
   final Widget app;
   final FlutterSecureStorage storage;
   final FirebaseFirestore firestore;
-  const AppBlocs({super.key, required this.app, required this.storage, required this.firestore});
+  const AppBlocs(
+      {super.key,
+      required this.app,
+      required this.storage,
+      required this.firestore});
 
   @override
   Widget build(BuildContext context) {
@@ -33,11 +37,12 @@ class AppBlocs extends StatelessWidget {
           create: (context) => AuthBloc(
             cacheBloc: BlocProvider.of<CacheBloc>(context),
             authRepository: RepositoryProvider.of<AuthRepository>(context),
-          ),
+          )..add(CheckAuthStatus())
         ),
         BlocProvider(
           create: (context) => TodoBloc(
-           repository: RepositoryProvider.of<TodoRepository>(context),
+            repository: RepositoryProvider.of<TodoRepository>(context),
+            authBloc: BlocProvider.of<AuthBloc>(context),
           )..add(LoadTodos()),
         )
       ],

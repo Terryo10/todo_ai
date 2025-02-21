@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:equatable/equatable.dart';
+import 'package:todo_ai/domain/bloc/auth_bloc/auth_bloc.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../model/todo_model.dart';
@@ -13,81 +14,156 @@ part 'todo_state.dart';
 
 class TodoBloc extends Bloc<TodoEvent, TodoState> {
   final TodoRepository _repository;
+  final AuthBloc _authBloc;
   StreamSubscription? _todosSubscription;
   StreamSubscription? _connectivitySubscription;
+  StreamSubscription? _authSubscription;
+  String? _currentUserId;
 
-  TodoBloc({required TodoRepository repository})
-      : _repository = repository,
+  TodoBloc({
+    required TodoRepository repository,
+    required AuthBloc authBloc,
+  })  : _repository = repository,
+        _authBloc = authBloc,
         super(TodoInitial()) {
-    // Register event handlers
+    if (_authBloc.state is AuthAuthenticatedState) {
+      _currentUserId = (_authBloc.state as AuthAuthenticatedState).userId;
+    }
+
+    // Listen to auth state changes
+    _authSubscription = _authBloc.stream.listen((AuthState state) {
+      if (state is AuthAuthenticatedState) {
+        _currentUserId = state.userId;
+        add(LoadTodos());
+      } else {
+        _currentUserId = null;
+        add(ClearTodos());
+      }
+    });
+
     on<LoadTodos>((event, emit) async {
+      if (_currentUserId == null) {
+        emit(TodoError(message: 'User not authenticated'));
+        return;
+      }
       await _onLoadTodos(event, emit);
     });
 
+    on<ClearTodos>((event, emit) {
+      emit(TodoInitial());
+    });
+
     on<AddTodo>((event, emit) async {
+      if (_currentUserId == null) {
+        emit(TodoError(message: 'User not authenticated'));
+        return;
+      }
       await _onAddTodo(event, emit);
     });
 
     on<UpdateTodo>((event, emit) async {
+      if (_currentUserId == null) {
+        emit(TodoError(message: 'User not authenticated'));
+        return;
+      }
       await _onUpdateTodo(event, emit);
     });
 
     on<DeleteTodo>((event, emit) async {
+      if (_currentUserId == null) {
+        emit(TodoError(message: 'User not authenticated'));
+        return;
+      }
       await _onDeleteTodo(event, emit);
     });
 
     on<AddTask>((event, emit) async {
+      if (_currentUserId == null) {
+        emit(TodoError(message: 'User not authenticated'));
+        return;
+      }
       await _onAddTask(event, emit);
     });
 
     on<UpdateTask>((event, emit) async {
+      if (_currentUserId == null) {
+        emit(TodoError(message: 'User not authenticated'));
+        return;
+      }
       await _onUpdateTask(event, emit);
     });
 
     on<DeleteTask>((event, emit) async {
+      if (_currentUserId == null) {
+        emit(TodoError(message: 'User not authenticated'));
+        return;
+      }
       await _onDeleteTask(event, emit);
     });
 
-    // Set up connectivity listener
+    // Update connectivity subscription to use current user ID
     _connectivitySubscription =
         _repository.watchConnectivity().listen((connectivityResult) {
-      if (connectivityResult != ConnectivityResult.none) {
-        _repository.syncWithFirebase();
+      if (connectivityResult != ConnectivityResult.none && _currentUserId != null) {
+        _repository.syncWithFirebase(_currentUserId!); // Pass the user ID
       }
     });
 
-    // Set up todos listener
-    _todosSubscription = _repository.watchTodos().listen((todos) {
-      add(LoadTodos()); // Trigger a reload when local data changes
-    });
+    // Setup initial todos subscription
+    _setupTodosSubscription();
   }
+
+  void _setupTodosSubscription() {
+    _todosSubscription?.cancel();
+    if (_currentUserId != null) {
+      _todosSubscription = _repository.watchUserTodos(_currentUserId!).listen((todos) {
+        add(LoadTodos());
+      });
+    }
+  }
+
+  // ... rest of the methods remain the same ...
+
+  @override
+  Future<void> close() {
+    _todosSubscription?.cancel();
+    _connectivitySubscription?.cancel();
+    _authSubscription?.cancel();
+    return super.close();
+  }
+
+
 
   Future<void> _onLoadTodos(LoadTodos event, Emitter<TodoState> emit) async {
     emit(TodoLoading());
     try {
-      final todos = _repository.getLocalTodos();
-      emit(TodoLoaded(todos: todos));
-      // Try to sync with Firebase
-      await _repository.syncWithFirebase();
+      final todos = _repository.getLocalUserTodos(_currentUserId?? '');
+      final userTodos = todos.where((todo) => 
+        todo.uid == _currentUserId || 
+        todo.collaborators.contains(_currentUserId)
+      ).toList();
+      
+      emit(TodoLoaded(todos: userTodos));
+      await _repository.syncWithFirebase(_currentUserId ?? '');
     } catch (e) {
       emit(TodoError(message: 'Failed to load todos: $e'));
     }
   }
 
-  Future _onAddTodo(AddTodo event, Emitter<TodoState> emit) async {
+  Future<void> _onAddTodo(AddTodo event, Emitter<TodoState> emit) async {
     try {
       final currentState = state;
       if (currentState is TodoLoaded) {
         final todo = Todo(
           id: const Uuid().v4(),
+          uid: _currentUserId ?? '',
           name: event.name,
           createdTime: DateTime.now(),
-          collaborators: [event.createdBy],
+          collaborators: [_currentUserId ?? ''],
           tasks: [],
         );
 
         await _repository.saveLocalTodo(todo);
-        // State will be updated via the todos listener
       }
     } catch (e) {
       emit(TodoError(message: 'Failed to add todo: $e'));
@@ -99,7 +175,6 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       final currentState = state;
       if (currentState is TodoLoaded) {
         await _repository.saveLocalTodo(event.todo);
-        // State will be updated via the todos listener
       }
     } catch (e) {
       emit(TodoError(message: 'Failed to update todo: $e'));
@@ -111,7 +186,6 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       final currentState = state;
       if (currentState is TodoLoaded) {
         await _repository.deleteLocalTodo(event.todoId);
-        // State will be updated via the todos listener
       }
     } catch (e) {
       emit(TodoError(message: 'Failed to delete todo: $e'));
@@ -122,11 +196,12 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     try {
       final currentState = state;
       if (currentState is TodoLoaded) {
-        final todos = _repository.getLocalTodos();
+        final todos = _repository.getLocalUserTodos(_currentUserId ?? '');
         final todo = todos.firstWhere((todo) => todo.id == event.todoId);
 
         final newTask = Task(
           id: const Uuid().v4(),
+          todoId: todo.id,
           name: event.taskName,
           assignedTo: event.assignedTo,
           reminderTime: event.reminderTime,
@@ -138,7 +213,6 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
         );
 
         await _repository.saveLocalTodo(updatedTodo);
-        // State will be updated via the todos listener
       }
     } catch (e) {
       emit(TodoError(message: 'Failed to add task: $e'));
@@ -149,7 +223,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     try {
       final currentState = state;
       if (currentState is TodoLoaded) {
-        final todos = _repository.getLocalTodos();
+        final todos = _repository.getLocalUserTodos(_currentUserId ?? '');
         final todo = todos.firstWhere((todo) => todo.id == event.todoId);
 
         final updatedTasks = todo.tasks.map((task) {
@@ -158,7 +232,6 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
 
         final updatedTodo = todo.copyWith(tasks: updatedTasks);
         await _repository.saveLocalTodo(updatedTodo);
-        // State will be updated via the todos listener
       }
     } catch (e) {
       emit(TodoError(message: 'Failed to update task: $e'));
@@ -169,7 +242,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     try {
       final currentState = state;
       if (currentState is TodoLoaded) {
-        final todos = _repository.getLocalTodos();
+        final todos = _repository.getLocalUserTodos(_currentUserId ?? '');
         final todo = todos.firstWhere((todo) => todo.id == event.todoId);
 
         final updatedTasks =
@@ -177,17 +250,10 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
         final updatedTodo = todo.copyWith(tasks: updatedTasks);
 
         await _repository.saveLocalTodo(updatedTodo);
-        // State will be updated via the todos listener
       }
     } catch (e) {
       emit(TodoError(message: 'Failed to delete task: $e'));
     }
   }
-
-  @override
-  Future<void> close() {
-    _todosSubscription?.cancel();
-    _connectivitySubscription?.cancel();
-    return super.close();
-  }
 }
+
