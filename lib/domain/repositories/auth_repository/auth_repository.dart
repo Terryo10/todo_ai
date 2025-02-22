@@ -26,9 +26,6 @@ class AuthRepository {
     return await authProvider.signInWithGoogle();
   }
 
-  Future<UserModel> loginWithFacebook() async {
-    return await authProvider.signInWithFacebook();
-  }
 
   Future<UserModel> loginWithApple() async {
     return await authProvider.signInWithApple();

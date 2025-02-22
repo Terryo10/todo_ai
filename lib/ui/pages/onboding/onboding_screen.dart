@@ -33,10 +33,22 @@ class _OnbodingScreenState extends State<OnbodingScreen> {
   }
 
   @override
+  void dispose() {
+    _btnAnimationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticatedState) {
+          // Reset dialog state before navigation
+          if (isShowSignInDialog) {
+            setState(() {
+              isShowSignInDialog = false;
+            });
+          }
           context.navigateTo(EntryPointRoute());
         }
       },
@@ -93,14 +105,14 @@ class _OnbodingScreenState extends State<OnbodingScreen> {
                       AnimatedBtn(
                         btnAnimationController: _btnAnimationController,
                         press: () {
-                          if (isShowSignInDialog) return;
-
+                          if (isShowSignInDialog ||
+                              _btnAnimationController.isActive) return;
                           _btnAnimationController.isActive = true;
 
                           Future.delayed(
                             const Duration(milliseconds: 800),
                             () {
-                              if (!mounted || isShowSignInDialog) return;
+                              if (!mounted) return;
 
                               setState(() {
                                 isShowSignInDialog = true;
@@ -109,9 +121,13 @@ class _OnbodingScreenState extends State<OnbodingScreen> {
                               showCustomSignInDialog(
                                 context,
                                 onDismiss: () {
-                                  setState(() {
-                                    isShowSignInDialog = false;
-                                  });
+                                  if (mounted) {
+                                    setState(() {
+                                      isShowSignInDialog = false;
+                                    });
+                                    _btnAnimationController.isActive =
+                                        false; // Reset animation state
+                                  }
                                 },
                               );
                             },

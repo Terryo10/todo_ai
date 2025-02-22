@@ -11,8 +11,6 @@ class LoginWithGoogle extends AuthEvent {}
 
 class LoginWithApple extends AuthEvent {}
 
-class LoginWithFacebook extends AuthEvent {}
-
 class LogOut extends AuthEvent {}
 
 class CheckAuthStatus extends AuthEvent {}

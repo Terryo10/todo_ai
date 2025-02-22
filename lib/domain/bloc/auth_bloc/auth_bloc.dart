@@ -86,21 +86,5 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthErrorState('Apple sign in error: ${e.toString()}'));
       }
     });
-
-    on<LoginWithFacebook>((event, emit) async {
-      try {
-        emit(AuthLoadingState());
-        final result = await authRepository.loginWithFacebook();
-
-        emit(AuthAuthenticatedState(
-          userId: result.uid,
-          email: result.email ?? '',
-          displayName: result.displayName ?? '',
-          provider: 'facebook',
-        ));
-      } catch (e) {
-        emit(AuthErrorState('facebook sign in error: ${e.toString()}'));
-      }
-    });
   }
 }

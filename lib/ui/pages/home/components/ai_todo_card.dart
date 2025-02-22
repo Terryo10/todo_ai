@@ -1,8 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:async';
 
 import 'package:lottie/lottie.dart';
+import 'package:todo_ai/domain/bloc/prompt_generator_bloc/prompt_generator_bloc.dart';
+import 'package:todo_ai/ui/shared_widgets/thinking_loader.dart';
+
+class AiTodoScreen extends StatelessWidget {
+  const AiTodoScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.grey.shade900,
+            Colors.black,
+          ],
+        ),
+      ),
+      child: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: AiTodoCard(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class AiTodoCard extends StatefulWidget {
   const AiTodoCard({
@@ -46,25 +84,28 @@ class _AiTodoCardState extends State<AiTodoCard> {
     _typingTimer?.cancel();
     _currentTypingText = "";
 
-    _typingTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
-      if (charIndex < targetText.length) {
-        setState(() {
-          _currentTypingText = targetText.substring(0, charIndex + 1);
-        });
-        charIndex++;
-      } else {
-        timer.cancel();
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) {
-            setState(() {
-              _currentPromptIndex =
-                  (_currentPromptIndex + 1) % _aiPrompts.length;
-              _startTypingAnimation();
-            });
-          }
-        });
-      }
-    });
+    _typingTimer = Timer.periodic(
+      const Duration(milliseconds: 50),
+      (timer) {
+        if (charIndex < targetText.length) {
+          setState(() {
+            _currentTypingText = targetText.substring(0, charIndex + 1);
+          });
+          charIndex++;
+        } else {
+          timer.cancel();
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) {
+              setState(() {
+                _currentPromptIndex =
+                    (_currentPromptIndex + 1) % _aiPrompts.length;
+                _startTypingAnimation();
+              });
+            }
+          });
+        }
+      },
+    );
   }
 
   void _toggleExpanded() {
@@ -81,20 +122,15 @@ class _AiTodoCardState extends State<AiTodoCard> {
   }
 
   void _generateTodos(String prompt) {
-    // Simulated AI response - Connect to your AI service
+    if (prompt.trim().isEmpty) return;
+
     setState(() {
       _isExpanded = true;
-      _tasks = [
-        TodoItem(
-            title: "Implement Mukuru Card Visibility for All Customer States"),
-        TodoItem(title: "Integrate Mukuru Card Flow Based on Customer State"),
-        TodoItem(title: "Design UI for Suggested Products Section"),
-        TodoItem(title: "Develop Backend Support for Suggested Products"),
-        TodoItem(
-            title:
-                "Conduct User Acceptance Testing for Mukuru Card Integration"),
-      ];
+      _typingTimer?.cancel();
     });
+
+    BlocProvider.of<PromptGeneratorBloc>(context)
+        .add(GeneratePrompt(prompt: prompt));
   }
 
   void _toggleTaskAcceptance(TodoItem task) {
@@ -122,152 +158,395 @@ class _AiTodoCardState extends State<AiTodoCard> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      padding: const EdgeInsets.all(16),
-      width: MediaQuery.of(context).size.width * 0.95,
-      decoration: BoxDecoration(
-        color: widget.color,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade800),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Task Whiz",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(
-                  height: 70, child: Lottie.asset('assets/lotties/ai.json'))
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (!_isExpanded) ...[
-            Text(
-              _currentTypingText,
-              style: TextStyle(
-                color: Colors.grey.shade300,
-                fontSize: 16,
-              ),
+    return BlocListener<PromptGeneratorBloc, PromptGeneratorState>(
+      listener: (context, state) {
+        if (state is PromptLoadedState) {
+          setState(() {
+            _tasks =
+                state.taskList.map((task) => TodoItem(title: task)).toList();
+          });
+        } else if (state is PromptErrorState) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to generate tasks. Please try again.'),
+              backgroundColor: Colors.red,
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _promptController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: "Type your request here...",
-                      hintStyle: TextStyle(color: Colors.grey.shade500),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade800),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade800),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.send, color: Colors.white),
-                  onPressed: () => _generateTodos(_promptController.text),
-                ),
-              ],
-            ),
-          ],
-          if (_isExpanded && _tasks.isNotEmpty) ...[
-            ..._tasks.map((task) => _buildTaskItem(task)),
-            const SizedBox(height: 8),
+          );
+          _toggleExpanded();
+        }
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.all(16),
+        width: MediaQuery.of(context).size.width * 0.95,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height *
+              0.7, // Fixed height for the card
+        ),
+        decoration: BoxDecoration(
+          color: widget.color,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade800),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header - Always visible
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(Icons.thumb_up_outlined,
-                        color: Colors.grey.shade500, size: 20),
-                    const SizedBox(width: 8),
-                    Icon(Icons.thumb_down_outlined,
-                        color: Colors.grey.shade500, size: 20),
-                  ],
-                ),
-                TextButton(
-                  onPressed: _acceptAll,
-                  child: const Text(
-                    "Accept all",
-                    style: TextStyle(color: Colors.white70),
+                const Text(
+                  "Task Whiz",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
+                if (!_isExpanded)
+                  SizedBox(
+                    height: 70,
+                    child: Lottie.asset('assets/lotties/ai.json'),
+                  ),
+                if (_isExpanded)
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: _toggleExpanded,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
               ],
             ),
+            const SizedBox(height: 16),
+
+            if (!_isExpanded) ...[
+              Text(
+                _currentTypingText,
+                style: TextStyle(
+                  color: Colors.grey.shade300,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _promptController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: "Type your request here...",
+                        hintStyle: TextStyle(color: Colors.grey.shade500),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey.shade800),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey.shade800),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  BlocBuilder<PromptGeneratorBloc, PromptGeneratorState>(
+                    builder: (context, state) {
+                      if (state is PromptLoadingState) {
+                        return ThinkingLoader();
+                      }
+                      return IconButton(
+                        icon: const Icon(
+                          Icons.send,
+                          color: Colors.white,
+                        ),
+                        onPressed: () => _generateTodos(_promptController.text),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
+
+            if (_isExpanded) ...[
+              Expanded(
+                child: BlocBuilder<PromptGeneratorBloc, PromptGeneratorState>(
+                  builder: (context, state) {
+                    if (state is PromptLoadingState) {
+                      return ThinkingLoader();
+                    }
+
+                    if (_tasks.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          'No tasks generated yet',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                      );
+                    }
+
+                    return Column(
+                      children: [
+                        // Scrollable task list
+                        // Replace the existing Expanded widget in the tasks section with this enhanced version
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color:
+                                  Colors.grey.shade900.withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Stack(
+                              children: [
+                                // Scrollable content
+                                ScrollbarTheme(
+                                  data: ScrollbarThemeData(
+                                    thickness: WidgetStateProperty.all(8),
+                                    thumbColor: WidgetStateProperty.all(Colors
+                                        .deepPurple
+                                        .withValues(alpha: 0.6)),
+                                    trackColor: WidgetStateProperty.all(Colors
+                                        .grey.shade800
+                                        .withValues(alpha: 0.1)),
+                                    radius: const Radius.circular(10),
+                                    thumbVisibility:
+                                        WidgetStateProperty.all(true),
+                                    trackVisibility:
+                                        WidgetStateProperty.all(true),
+                                  ),
+                                  child: Scrollbar(
+                                    child: SingleChildScrollView(
+                                      physics: const BouncingScrollPhysics(),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 8),
+                                      child: Column(
+                                        children: [
+                                          ..._tasks.map(
+                                              (task) => _buildTaskItem(task)),
+                                          // Add some padding at the bottom to show there's more content
+                                          if (_tasks.length > 3)
+                                            const SizedBox(height: 16),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                // Gradient overlay at the bottom to indicate more content
+                                if (_tasks.length > 3)
+                                  Positioned(
+                                    bottom: 0,
+                                    left: 0,
+                                    right: 0,
+                                    height: 32,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            widget.color.withValues(alpha: 0),
+                                            widget.color,
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        )
+                      ],
+                    );
+                  },
+                ),
+              ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.thumb_up_outlined,
+                              color: Colors.grey.shade500, size: 20),
+                          const SizedBox(width: 8),
+                          Icon(Icons.thumb_down_outlined,
+                              color: Colors.grey.shade500, size: 20),
+                        ],
+                      ),
+                      TextButton(
+                        onPressed: _acceptAll,
+                        child: const Text(
+                          "Accept all",
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_tasks.any((task) => task.isAccepted)) ...[
+                    const SizedBox(height: 8),
+                    _buildCreateTodoButton(),
+                  ],
+                ],
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildTaskItem(TodoItem task) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          SvgPicture.asset(
-            "assets/icons/task_icon.svg",
-            height: 16,
-            width: 16,
-            colorFilter: ColorFilter.mode(
-              Colors.grey.shade500,
-              BlendMode.src,
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      decoration: BoxDecoration(
+        color: task.isAccepted
+            ? Colors.green.withValues(alpha: 0.15)
+            : Colors.black12,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: task.isAccepted
+              ? Colors.green.withValues(alpha: 0.3)
+              : Colors.grey.withValues(alpha: 0.1),
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: () => _toggleTaskAcceptance(task),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: task.isAccepted
+                        ? Colors.green.withValues(alpha: 0.2)
+                        : Colors.grey.shade800.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: SvgPicture.asset(
+                    "assets/icons/task_icon.svg",
+                    height: 14,
+                    width: 14,
+                    colorFilter: ColorFilter.mode(
+                      task.isAccepted ? Colors.green : Colors.grey.shade400,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    task.title,
+                    style: TextStyle(
+                      color: task.isAccepted
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.9),
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildActionButton(
+                      icon: Icons.check,
+                      color:
+                          task.isAccepted ? Colors.green : Colors.grey.shade500,
+                      onPressed: () => _toggleTaskAcceptance(task),
+                    ),
+                    _buildActionButton(
+                      icon: Icons.close,
+                      color: Colors.grey.shade500,
+                      onPressed: () => _removeTask(task),
+                    ),
+                    _buildActionButton(
+                      icon: Icons.edit,
+                      color: Colors.grey.shade500,
+                      onPressed: () {
+                        // Implement edit functionality
+                      },
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              task.title,
-              style: const TextStyle(
-                color: Colors.white,
-              ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCreateTodoButton() {
+    // Get count of accepted tasks
+    final acceptedTasks = _tasks.where((task) => task.isAccepted).toList();
+
+    if (acceptedTasks.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(top: 16),
+      width: double.infinity,
+      child: Material(
+        color: Colors.deepPurple,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            // Handle creating todo from accepted tasks
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.add_task,
+                  color: Colors.white,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Create Todo with (${acceptedTasks.length} tasks)',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
-          IconButton(
-            icon: Icon(
-              Icons.check,
-              color: task.isAccepted ? Colors.green : Colors.grey.shade500,
-            ),
-            onPressed: () => _toggleTaskAcceptance(task),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
+        ),
+      ),
+    );
+  }
+
+// Update your main build method to include the button
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(4),
+        onTap: onPressed,
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: Icon(
+            icon,
+            color: color,
+            size: 18,
           ),
-          const SizedBox(width: 8),
-          IconButton(
-            icon: Icon(Icons.close, color: Colors.grey.shade500),
-            onPressed: () => _removeTask(task),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-          const SizedBox(width: 8),
-          IconButton(
-            icon: Icon(Icons.edit, color: Colors.grey.shade500),
-            onPressed: () {
-              // Implement edit functionality
-            },
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-        ],
+        ),
       ),
     );
   }

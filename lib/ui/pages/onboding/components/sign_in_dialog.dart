@@ -95,14 +95,6 @@ class _SignInDialog extends StatelessWidget {
                         borderColor: Colors.grey.shade300,
                         authEvent: LoginWithGoogle(),
                       ),
-                      _SignInButton(
-                        icon: "assets/icons/facebook.svg",
-                        text: "Continue with Facebook",
-                        backgroundColor: const Color(0xFF1877F2),
-                        textColor: Colors.white,
-                        iconColor: Colors.white,
-                        authEvent: LoginWithFacebook(),
-                      ),
                       if (Platform.isIOS)
                         _SignInButton(
                           icon: "assets/icons/apple.svg",
@@ -233,7 +225,6 @@ class _SignInButton extends StatelessWidget {
       builder: (context, state) {
         final bool isLoading = state is AuthLoadingState &&
             ((authEvent is LoginWithGoogle && icon.contains('google')) ||
-                (authEvent is LoginWithFacebook && icon.contains('facebook')) ||
                 (authEvent is LoginWithApple && icon.contains('apple')));
 
         return Padding(
