@@ -1,6 +1,8 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../domain/model/todo_model.dart';
+import '../../../../routes/router.gr.dart';
 
 class TodoCardItem extends StatelessWidget {
   final Todo todo;
@@ -104,7 +106,13 @@ class TodoCardItem extends StatelessWidget {
               ),
             ),
             IconButton(
-              onPressed: () {},
+              onPressed: () {
+                context.navigateTo(
+                  TodoListRoute(
+                    todo: todo,
+                  ),
+                );
+              },
               icon: const Icon(
                 Icons.arrow_forward_ios,
                 size: 16,

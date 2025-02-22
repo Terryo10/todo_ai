@@ -7,10 +7,12 @@ class AppRouter extends RootStackRouter {
   @override
   List<AutoRoute> get routes => [
         AutoRoute(
-            page: OnbodingRoute.page, initial: true,),
+          page: OnbodingRoute.page,
+          initial: true,
+        ),
         AutoRoute(page: HomeRoute.page, guards: [AuthGuard()]),
         AutoRoute(page: EntryPointRoute.page, guards: [AuthGuard()]),
         AutoRoute(page: TodoRouteRoute.page, guards: [AuthGuard()]),
-
+        AutoRoute(page: TodoListRoute.page, guards: [AuthGuard()]),
       ];
 }
