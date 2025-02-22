@@ -9,17 +9,34 @@ part 'prompt_generator_state.dart';
 class PromptGeneratorBloc
     extends Bloc<PromptGeneratorEvent, PromptGeneratorState> {
   final TodoProvider todoProvider;
-  PromptGeneratorBloc({required this.todoProvider})
-      : super(PromptGeneratorInitial()) {
-    on<GeneratePrompt>((event, emit) async {
-      try {
-        emit(PromptLoadingState());
-        List<String> data =
-            await todoProvider.getTasksFromGemini(prompt: event.prompt);
-        emit(PromptLoadedState(taskList: data));
-      } catch (e) {
-        emit(PromptErrorState());
-      }
-    });
+  PromptGeneratorBloc({
+    required this.todoProvider,
+  }) : super(PromptGeneratorInitial()) {
+    on<GeneratePrompt>(
+      (event, emit) async {
+        try {
+          emit(
+            PromptLoadingState(),
+          );
+          List<String> data = await todoProvider.getTasksFromGemini(
+            prompt: event.prompt,
+          );
+          String topic = await todoProvider.getTodoTopicFromGemini(
+            prompt: event.prompt,
+          );
+          print(topic);
+          emit(
+            PromptLoadedState(
+              taskList: data,
+              topic: topic,
+            ),
+          );
+        } catch (e) {
+          emit(
+            PromptErrorState(),
+          );
+        }
+      },
+    );
   }
 }

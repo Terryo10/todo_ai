@@ -13,8 +13,9 @@ final class PromptLoadingState extends PromptGeneratorState {}
 
 final class PromptLoadedState extends PromptGeneratorState {
   final List<String> taskList;
+  final String topic;
 
-  const PromptLoadedState({required this.taskList});
+  const PromptLoadedState({required this.taskList, required this.topic});
 
    @override
   List<Object> get props => [taskList];

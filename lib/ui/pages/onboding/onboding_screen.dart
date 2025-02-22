@@ -126,7 +126,7 @@ class _OnbodingScreenState extends State<OnbodingScreen> {
                                       isShowSignInDialog = false;
                                     });
                                     _btnAnimationController.isActive =
-                                        false; // Reset animation state
+                                        false; 
                                   }
                                 },
                               );
@@ -148,4 +148,5 @@ class _OnbodingScreenState extends State<OnbodingScreen> {
       ),
     );
   }
+
 }

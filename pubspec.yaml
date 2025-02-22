@@ -41,7 +41,7 @@ dependencies:
   flutter_svg: ^2.0.10
   http: ^1.2.2
   cached_network_image: ^3.4.0
-  rive: ^0.13.12
+  rive: ^0.13.20
   equatable: ^2.0.7
   flutter_local_notifications: ^18.0.1
   firebase_auth: ^5.3.3

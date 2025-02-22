@@ -100,4 +100,50 @@ class TodoProvider {
         .where((task) => task.isNotEmpty)
         .toList();
   }
+
+  Future<String> getTodoTopicFromGemini({required String prompt}) async {
+    final url = Uri.parse('$baseUrl?key=$apiKey');
+    final payload = {
+      "contents": [
+        {
+          "parts": [
+            {
+              "text":
+                  'Given the goal of "$prompt", write a small topic for the todo.'
+            }
+          ]
+        }
+      ]
+    };
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+
+      if (response.statusCode != 200) {
+        throw GeminiApiException(
+          'API request failed: ${response.body}',
+          response.statusCode,
+        );
+      }
+      final responseData = jsonDecode(response.body);
+
+      final candidates = responseData['candidates'] as List?;
+
+      if (candidates == null || candidates.isEmpty) {
+        throw GeminiApiException('No candidates found in response');
+      }
+
+      final output = candidates[0]['content']['parts'][0]['text'] as String;
+      return output;
+    } catch (e) {
+      if (e is GeminiApiException) {
+        rethrow;
+      }
+      throw GeminiApiException('Failed to process tasks: ${e.toString()}');
+    }
+  }
 }

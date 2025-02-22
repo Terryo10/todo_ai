@@ -6,7 +6,7 @@ import '../../../domain/bloc/todo_bloc/todo_bloc.dart';
 import '../../../domain/model/course.dart';
 import '../../../routes/router.gr.dart';
 import 'components/ai_todo_card.dart';
-import 'components/secondary_course_card.dart';
+import 'components/todo_card_item.dart';
 
 @RoutePage()
 class HomePage extends StatefulWidget {
@@ -17,7 +17,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   String _selectedFilter = 'All';
   final List<String> _filters = ['All', 'Today', 'Important', 'Completed'];
 
@@ -48,7 +47,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: BlocBuilder<TodoBloc, TodoState>(
                 builder: (context, state) {
                   if (state is TodoLoaded) {
@@ -60,7 +59,7 @@ class _HomePageState extends State<HomePage> {
                             key: ValueKey(todo.id),
                             child: Padding(
                               padding: const EdgeInsets.only(bottom: 8),
-                              child: TodoCard(todo: todo),
+                              child: TodoCardItem(todo: todo),
                             ),
                           );
                         },
@@ -82,7 +81,10 @@ class _HomePageState extends State<HomePage> {
           context.navigateTo(TodoRouteRoute());
         },
         backgroundColor: Theme.of(context).primaryColor,
-        child: const Icon(Icons.add),
+        child: const Icon(
+          Icons.add,
+          color: Colors.white,
+        ),
       ),
     );
   }
@@ -139,7 +141,7 @@ class _HomePageState extends State<HomePage> {
       height: 40,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: _filters.length,
         itemBuilder: (context, index) {
           final filter = _filters[index];
@@ -174,7 +176,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildTodoHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

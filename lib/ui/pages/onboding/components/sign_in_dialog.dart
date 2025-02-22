@@ -30,7 +30,8 @@ class _SignInDialog extends StatelessWidget {
       listener: (context, state) {
         if (state is AuthAuthenticatedState) {
           if (context.mounted) {
-            Navigator.of(context, rootNavigator: true).pop();
+            onDismiss();
+            // Navigator.of(context, rootNavigator: true).pop();
           }
         }
         if (state is AuthErrorState) {
