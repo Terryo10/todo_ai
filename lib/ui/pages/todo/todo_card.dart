@@ -21,7 +21,6 @@ class TodoCard extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Todo Header
           ListTile(
             title: Row(
               children: [

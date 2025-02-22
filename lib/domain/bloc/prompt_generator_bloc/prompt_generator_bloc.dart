@@ -24,7 +24,6 @@ class PromptGeneratorBloc
           String topic = await todoProvider.getTodoTopicFromGemini(
             prompt: event.prompt,
           );
-          print(topic);
           emit(
             PromptLoadedState(
               taskList: data,
