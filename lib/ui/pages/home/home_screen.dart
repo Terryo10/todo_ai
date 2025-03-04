@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../domain/bloc/todo_bloc/todo_bloc.dart';
 import '../../../domain/model/course.dart';
-import '../../../routes/router.gr.dart';
+import '../todo/create_todo_dialog.dart';
 import 'components/ai_todo_card.dart';
 import 'components/todo_card_item.dart';
 
@@ -72,13 +72,22 @@ class _HomePageState extends State<HomePage> {
                   );
                 },
               ),
-            )
+            ),
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height:
+                    MediaQuery.of(context).size.height * .15,
+              ),
+            ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.navigateTo(TodoRouteRoute());
+        onPressed: () async {
+          await showDialog<bool>(
+            context: context,
+            builder: (context) => const CreateTodoDialog(),
+          );
         },
         backgroundColor: Theme.of(context).primaryColor,
         child: const Icon(

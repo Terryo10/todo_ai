@@ -108,7 +108,7 @@ class TodoCardItem extends StatelessWidget {
             IconButton(
               onPressed: () {
                 context.navigateTo(
-                  TodoListRoute(
+                  SingleTodoRoute(
                     todo: todo,
                   ),
                 );

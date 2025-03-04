@@ -12,7 +12,6 @@ class AppRouter extends RootStackRouter {
         ),
         AutoRoute(page: HomeRoute.page, guards: [AuthGuard()]),
         AutoRoute(page: EntryPointRoute.page, guards: [AuthGuard()]),
-        AutoRoute(page: TodoRouteRoute.page, guards: [AuthGuard()]),
-        AutoRoute(page: TodoListRoute.page, guards: [AuthGuard()]),
+        AutoRoute(page: SingleTodoRoute.page, guards: [AuthGuard()]),
       ];
 }
