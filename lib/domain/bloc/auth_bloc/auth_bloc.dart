@@ -26,9 +26,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     authRepository.authStateChanges.listen((user) {
       if (user != null) {
         add(AuthStateChanged(user));
-      } else {
-        add(LogOut());
-      }
+      } 
     });
 
     on<CheckAuthStatus>((event, emit) async {
@@ -67,6 +65,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           provider: 'google',
         ));
       } catch (e) {
+        print('kkkkkkkk ${e.toString()}');
         emit(AuthErrorState('Google sign in error: ${e.toString()}'));
       }
     });
