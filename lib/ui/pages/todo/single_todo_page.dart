@@ -1,11 +1,14 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../domain/bloc/todo_bloc/todo_bloc.dart';
 import '../../../domain/model/todo_model.dart';
+import '../../../routes/router.gr.dart';
 import 'add_task_dialogue.dart';
 
+@RoutePage()
 class SingleTodoPage extends StatefulWidget {
   final Todo todo;
 
@@ -200,54 +203,65 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
         color: const Color(0xFFF5F5F5),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        leading: Checkbox(
-          value: task.isCompleted,
-          activeColor: const Color(0xFF6B4EFF),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(4),
+      child: InkWell(
+        onTap: () {
+          context.navigateTo(
+            SingleTaskDetailRoute(
+              todoId: todo.id,
+              taskId: task.id,
+            ),
+          );
+        },
+        child: ListTile(
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          leading: Checkbox(
+            value: task.isCompleted,
+            activeColor: const Color(0xFF6B4EFF),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+            ),
+            side: BorderSide(
+              color: Colors.grey.shade300,
+              width: 2,
+            ),
+            onChanged: (value) {
+              if (value != null) {
+                context.read<TodoBloc>().add(
+                      UpdateTask(
+                        todoId: todo.id,
+                        task: task.copyWith(isCompleted: value),
+                      ),
+                    );
+              }
+            },
           ),
-          side: BorderSide(
-            color: Colors.grey.shade300,
-            width: 2,
+          title: Text(
+            task.name,
+            style: TextStyle(
+              color: Colors.black,
+              decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+            ),
           ),
-          onChanged: (value) {
-            if (value != null) {
-              context.read<TodoBloc>().add(
-                    UpdateTask(
-                      todoId: todo.id,
-                      task: task.copyWith(isCompleted: value),
-                    ),
-                  );
-            }
-          },
-        ),
-        title: Text(
-          task.name,
-          style: TextStyle(
-            color: Colors.black,
-            decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (task.assignedTo != null)
+                Text(
+                  'Assigned to: ${task.assignedTo!}',
+                  style: const TextStyle(color: Colors.black54, fontSize: 12),
+                ),
+              if (task.reminderTime != null)
+                Text(
+                  'Reminder: ${DateFormat.yMMMd().add_jm().format(task.reminderTime!)}',
+                  style: const TextStyle(color: Colors.black54, fontSize: 12),
+                ),
+            ],
           ),
+          trailing: task.isImportant
+              ? const Icon(Icons.star, color: Colors.amber, size: 20)
+              : null,
         ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (task.assignedTo != null)
-              Text(
-                'Assigned to: ${task.assignedTo!}',
-                style: const TextStyle(color: Colors.black54, fontSize: 12),
-              ),
-            if (task.reminderTime != null)
-              Text(
-                'Reminder: ${DateFormat.yMMMd().add_jm().format(task.reminderTime!)}',
-                style: const TextStyle(color: Colors.black54, fontSize: 12),
-              ),
-          ],
-        ),
-        trailing: task.isImportant
-            ? const Icon(Icons.star, color: Colors.amber, size: 20)
-            : null,
       ),
     );
   }
