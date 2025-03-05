@@ -5,8 +5,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:todo_ai/domain/bloc/auth_bloc/auth_bloc.dart';
 import 'package:todo_ai/domain/bloc/todo_bloc/todo_bloc.dart';
 
-import '../../../domain/model/todo_model.dart';
 import '../../../routes/router.gr.dart';
+import 'edit_profile_dialog.dart';
 
 @RoutePage()
 class ProfilePage extends StatefulWidget {
@@ -54,7 +54,6 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 24),
               const _ProfileInfoCards(),
               const SizedBox(height: 24),
-              const _RecentActivity(),
             ],
           ),
         ),
@@ -121,12 +120,6 @@ class _ProfileHeader extends StatelessWidget {
                   color: Colors.black54,
                 ),
               ),
-              const SizedBox(height: 12),
-              Text(
-                state.userId,
-                style: textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
             ],
           );
         }
@@ -144,7 +137,12 @@ class _ActionButtons extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         ElevatedButton.icon(
-          onPressed: () {},
+          onPressed: () async {
+            await showDialog<bool>(
+              context: context,
+              builder: (context) => const EditProfileDialog(),
+            );
+          },
           icon: const Icon(Icons.edit),
           label: const Text("Edit Profile"),
           style: ElevatedButton.styleFrom(
@@ -256,141 +254,6 @@ class _InfoCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _RecentActivity extends StatelessWidget {
-  const _RecentActivity({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    // Access the TodoBloc state to get todos
-    final todoState = context.watch<TodoBloc>().state;
-
-    // Create a list to hold todos
-    List<Todo> recentTodos = [];
-
-    // Check if todos are loaded
-    if (todoState is TodoLoaded) {
-      // Get all todos
-      final allTodos = todoState.todos;
-
-      // Sort todos by creation time (newest first)
-      final sortedTodos = List<Todo>.from(allTodos)
-        ..sort((a, b) => b.createdTime.compareTo(a.createdTime));
-
-      // Take the 5 most recent todos
-      recentTodos = sortedTodos.take(5).toList();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4.0),
-          child: Text(
-            "Recent Activity",
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        if (recentTodos.isEmpty)
-          const Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 16.0),
-              child: Text("No recent todos found"),
-            ),
-          )
-        else
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: recentTodos.length,
-            itemBuilder: (context, index) {
-              final todo = recentTodos[index];
-              final completedTasks =
-                  todo.tasks.where((t) => t.isCompleted).length;
-              final totalTasks = todo.tasks.length;
-
-              // Calculate how long ago the todo was created
-              final now = DateTime.now();
-              final difference = now.difference(todo.createdTime);
-              String timeAgo;
-
-              if (difference.inDays > 0) {
-                timeAgo =
-                    "${difference.inDays} day${difference.inDays != 1 ? 's' : ''} ago";
-              } else if (difference.inHours > 0) {
-                timeAgo =
-                    "${difference.inHours} hour${difference.inHours != 1 ? 's' : ''} ago";
-              } else if (difference.inMinutes > 0) {
-                timeAgo =
-                    "${difference.inMinutes} minute${difference.inMinutes != 1 ? 's' : ''} ago";
-              } else {
-                timeAgo = "Just now";
-              }
-
-              return _ActivityItem(
-                title: todo.name,
-                todo: todo,
-                subtitle:
-                    "$completedTasks of $totalTasks tasks completed • $timeAgo",
-                icon:
-                    todo.isCompleted ? Icons.task_alt : Icons.checklist_rounded,
-                isCompleted: todo.isCompleted,
-              );
-            },
-          ),
-      ],
-    );
-  }
-}
-
-// Update the ActivityItem class to include completion status
-class _ActivityItem extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final Todo todo;
-
-  final IconData icon;
-  final bool isCompleted;
-
-  const _ActivityItem({
-    required this.title,
-    required this.subtitle,
-    required this.todo,
-    required this.icon,
-    this.isCompleted = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        leading: CircleAvatar(
-          child: Icon(icon, color: Colors.white),
-          backgroundColor:
-              isCompleted ? Colors.green : Theme.of(context).primaryColor,
-        ),
-        title: Text(title),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: () {
-          context.navigateTo(
-            SingleTodoRoute(
-              todo: todo,
-            ),
-          );
-        },
       ),
     );
   }

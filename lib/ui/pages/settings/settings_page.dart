@@ -1,6 +1,5 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 // Assume these imports exist in your project
 // import 'package:your_app/bloc/settings/settings_bloc.dart';
 // import 'package:your_app/bloc/theme/theme_bloc.dart';
