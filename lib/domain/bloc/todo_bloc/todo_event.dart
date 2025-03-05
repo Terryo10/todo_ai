@@ -85,3 +85,7 @@ class ClearTodos extends TodoEvent {
   @override
   List<Object?> get props => [];
 }
+
+class SortTodosByDate extends TodoEvent {}
+class SortTodosByPriority extends TodoEvent {}
+class ArchiveCompletedTodos extends TodoEvent {}

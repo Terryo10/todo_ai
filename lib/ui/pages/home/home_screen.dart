@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../domain/bloc/todo_bloc/todo_bloc.dart';
 import '../../../domain/model/course.dart';
+import '../../../domain/model/todo_model.dart';
 import '../todo/create_todo_dialog.dart';
 import 'components/ai_todo_card.dart';
 import 'components/todo_card_item.dart';
@@ -20,7 +21,42 @@ class _HomePageState extends State<HomePage> {
   String _selectedFilter = 'All';
   final List<String> _filters = ['All', 'Today', 'Important', 'Completed'];
 
-  @override
+    List<Todo> _filterTodos(List<Todo> todos) {
+    switch (_selectedFilter) {
+      case 'Today':
+        return todos.where((todo) {
+          // Check if todo has tasks due today
+          return todo.tasks.any((task) => 
+            task.reminderTime != null && 
+            _isToday(task.reminderTime!)
+          );
+        }).toList();
+      
+      case 'Important':
+        return todos.where((todo) => 
+          todo.tasks.any((task) => task.isImportant)
+        ).toList();
+      
+      case 'Completed':
+        return todos.where((todo) => 
+          todo.isCompleted || 
+          todo.tasks.every((task) => task.isCompleted)
+        ).toList();
+      
+      case 'All':
+      default:
+        return todos;
+    }
+  }
+
+   bool _isToday(DateTime date) {
+    final now = DateTime.now();
+    return date.year == now.year &&
+           date.month == now.month &&
+           date.day == now.day;
+  }
+
+    @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
@@ -51,10 +87,13 @@ class _HomePageState extends State<HomePage> {
               sliver: BlocBuilder<TodoBloc, TodoState>(
                 builder: (context, state) {
                   if (state is TodoLoaded) {
+                    // Apply filter to todos
+                    final filteredTodos = _filterTodos(state.todos);
+
                     return SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
-                          final todo = state.todos[index];
+                          final todo = filteredTodos[index];
                           return KeyedSubtree(
                             key: ValueKey(todo.id),
                             child: Padding(
@@ -63,7 +102,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           );
                         },
-                        childCount: state.todos.length,
+                        childCount: filteredTodos.length,
                       ),
                     );
                   }
@@ -75,8 +114,7 @@ class _HomePageState extends State<HomePage> {
             ),
             SliverToBoxAdapter(
               child: SizedBox(
-                height:
-                    MediaQuery.of(context).size.height * .15,
+                height: MediaQuery.of(context).size.height * .15,
               ),
             ),
           ],
@@ -97,7 +135,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
   Widget _buildHeader(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -183,43 +220,52 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildTodoHeader(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            "My Todos",
-            style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'sort_date',
-                child: Text('Sort by Date'),
+ Widget _buildTodoHeader(BuildContext context) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          "My Todos",
+          style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
               ),
-              const PopupMenuItem(
-                value: 'sort_priority',
-                child: Text('Sort by Priority'),
-              ),
-              const PopupMenuItem(
-                value: 'archive_completed',
-                child: Text('Archive Completed'),
-              ),
-            ],
-            onSelected: (value) {
-              // Handle menu selection
-            },
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert),
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'sort_date',
+              child: Text('Sort by Date'),
+            ),
+            const PopupMenuItem(
+              value: 'sort_priority',
+              child: Text('Sort by Priority'),
+            ),
+            const PopupMenuItem(
+              value: 'archive_completed',
+              child: Text('Archive Completed'),
+            ),
+          ],
+          onSelected: (value) {
+            if (value == 'sort_date') {
+
+              context.read<TodoBloc>().add(SortTodosByDate());
+            } else if (value == 'sort_priority') {
+
+              context.read<TodoBloc>().add(SortTodosByPriority());
+            } else if (value == 'archive_completed') {
+
+              context.read<TodoBloc>().add(ArchiveCompletedTodos());
+            }
+          },
+        ),
+      ],
+    ),
+  );
+}
 }
 
 // Add this extension for shadow utilities

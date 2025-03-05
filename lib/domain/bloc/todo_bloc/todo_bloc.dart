@@ -101,6 +101,45 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       await _onDeleteTask(event, emit);
     });
 
+    on<SortTodosByDate>((event, emit) async {
+      if (state is TodoLoaded) {
+        final todos = (state as TodoLoaded).todos;
+        todos.sort((a, b) => b.createdTime.compareTo(a.createdTime));
+        emit(TodoLoaded(todos: todos));
+      }
+    });
+
+    on<SortTodosByPriority>((event, emit) async {
+      if (state is TodoLoaded) {
+        final todos = (state as TodoLoaded).todos;
+        todos.sort((a, b) {
+          final aImportantTasksCount =
+              a.tasks.where((task) => task.isImportant).length;
+          final bImportantTasksCount =
+              b.tasks.where((task) => task.isImportant).length;
+
+          if (aImportantTasksCount != bImportantTasksCount) {
+            return bImportantTasksCount.compareTo(aImportantTasksCount);
+          }
+
+          return b.createdTime.compareTo(a.createdTime);
+        });
+        emit(TodoLoaded(todos: todos));
+      }
+    });
+
+    on<ArchiveCompletedTodos>((event, emit) async {
+      if (state is TodoLoaded) {
+        final todos = (state as TodoLoaded).todos;
+        final incompleteTodos = todos
+            .where((todo) =>
+                !todo.isCompleted &&
+                todo.tasks.any((task) => !task.isCompleted))
+            .toList();
+        emit(TodoLoaded(todos: incompleteTodos));
+      }
+    });
+
     // Update connectivity subscription to use current user ID
     _connectivitySubscription =
         _repository.watchConnectivity().listen((connectivityResult) {
