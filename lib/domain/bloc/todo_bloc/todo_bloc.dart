@@ -104,7 +104,8 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     // Update connectivity subscription to use current user ID
     _connectivitySubscription =
         _repository.watchConnectivity().listen((connectivityResult) {
-      if (connectivityResult != ConnectivityResult.none && _currentUserId != null) {
+      if (connectivityResult != ConnectivityResult.none &&
+          _currentUserId != null) {
         _repository.syncWithFirebase(_currentUserId!); // Pass the user ID
       }
     });
@@ -116,7 +117,8 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
   void _setupTodosSubscription() {
     _todosSubscription?.cancel();
     if (_currentUserId != null) {
-      _todosSubscription = _repository.watchUserTodos(_currentUserId!).listen((todos) {
+      _todosSubscription =
+          _repository.watchUserTodos(_currentUserId!).listen((todos) {
         add(LoadTodos());
       });
     }
@@ -132,17 +134,18 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     return super.close();
   }
 
-
-
   Future<void> _onLoadTodos(LoadTodos event, Emitter<TodoState> emit) async {
     emit(TodoLoading());
     try {
-      final todos = _repository.getLocalUserTodos(_currentUserId?? '');
-      final userTodos = todos.where((todo) => 
-        todo.uid == _currentUserId || 
-        todo.collaborators.contains(_currentUserId)
-      ).toList();
-      
+      final todos = _repository.getLocalUserTodos(_currentUserId ?? '');
+      final userTodos = todos
+          .where((todo) =>
+              todo.uid == _currentUserId ||
+              todo.collaborators.contains(_currentUserId))
+          .toList();
+
+      userTodos.sort((a, b) => b.createdTime.compareTo(a.createdTime));
+
       emit(TodoLoaded(todos: userTodos));
       await _repository.syncWithFirebase(_currentUserId ?? '');
     } catch (e) {
@@ -256,4 +259,3 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     }
   }
 }
-
