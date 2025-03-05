@@ -68,7 +68,7 @@ class _TodoSearchFilterDialogState extends State<TodoSearchFilterDialog> {
                   prefixIcon:
                       const Icon(Icons.search, color: Colors.deepPurple),
                   filled: true,
-                  fillColor: Colors.purple.shade50.withOpacity(0.5),
+                  fillColor: Colors.purple.shade50.withValues(alpha: 0.5),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
                     borderSide: BorderSide.none,
@@ -124,7 +124,7 @@ class _TodoSearchFilterDialogState extends State<TodoSearchFilterDialog> {
                         borderRadius: BorderRadius.circular(15),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.purple.shade100.withOpacity(0.3),
+                            color: Colors.purple.shade100.withValues(alpha:0.3),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),

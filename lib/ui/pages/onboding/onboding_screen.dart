@@ -106,7 +106,9 @@ class _OnbodingScreenState extends State<OnbodingScreen> {
                         btnAnimationController: _btnAnimationController,
                         press: () {
                           if (isShowSignInDialog ||
-                              _btnAnimationController.isActive) return;
+                              _btnAnimationController.isActive) {
+                            return;
+                          }
                           _btnAnimationController.isActive = true;
 
                           Future.delayed(
@@ -119,6 +121,7 @@ class _OnbodingScreenState extends State<OnbodingScreen> {
                               });
 
                               showCustomSignInDialog(
+                                // ignore: use_build_context_synchronously
                                 context,
                                 onDismiss: () {
                                   if (mounted) {

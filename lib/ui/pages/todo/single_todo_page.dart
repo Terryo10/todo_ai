@@ -15,6 +15,7 @@ class SingleTodoPage extends StatefulWidget {
   });
 
   @override
+  // ignore: library_private_types_in_public_api
   _SingleTodoPageState createState() => _SingleTodoPageState();
 }
 

@@ -46,7 +46,7 @@ class Todo {
 
   Todo copyWith({
     String? id,
-    String? uid, // Added to copyWith
+    String? uid,
     String? name,
     DateTime? createdTime,
     List<String>? collaborators,
@@ -55,7 +55,7 @@ class Todo {
   }) {
     return Todo(
       id: id ?? this.id,
-      uid: uid ?? this.uid, // Added to copyWith return
+      uid: uid ?? this.uid,
       name: name ?? this.name,
       createdTime: createdTime ?? this.createdTime,
       collaborators: collaborators ?? this.collaborators,

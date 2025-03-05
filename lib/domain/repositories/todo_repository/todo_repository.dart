@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
@@ -60,7 +61,9 @@ class TodoRepository {
             .doc(todo.id)
             .set(todo.toMap(), SetOptions(merge: true));
       } catch (e) {
-        print('Error syncing todo to Firebase: $e');
+        if (kDebugMode) {
+          print('Error syncing todo to Firebase: $e');
+        }
       }
     }
   }
@@ -71,7 +74,9 @@ class TodoRepository {
       try {
         await _firestore.collection('todos').doc(todoId).delete();
       } catch (e) {
-        print('Error deleting todo from Firebase: $e');
+        if (kDebugMode) {
+          print('Error deleting todo from Firebase: $e');
+        }
       }
     }
   }
@@ -115,7 +120,9 @@ class TodoRepository {
         }
       }
     } catch (e) {
-      print('Error syncing with Firebase: $e');
+      if (kDebugMode) {
+        print('Error syncing with Firebase: $e');
+      }
     }
   }
 
