@@ -1,5 +1,7 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:todo_ai/routes/router.gr.dart';
 import '../../../domain/model/todo_model.dart';
 import '../../../domain/bloc/todo_bloc/todo_bloc.dart';
 
@@ -116,69 +118,76 @@ class _TodoSearchFilterDialogState extends State<TodoSearchFilterDialog> {
                   itemCount: _filteredTodos.length,
                   itemBuilder: (context, index) {
                     final todo = _filteredTodos[index];
-                    return Container(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.purple.shade100.withValues(alpha:0.3),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
+                    return InkWell(
+                      onTap: () {
+                        context.navigateTo(SingleTodoRoute(todo: todo));
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 8),
-                        title: Text(
-                          todo.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.deepPurple,
-                          ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                                  Colors.purple.shade100.withValues(alpha: 0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        subtitle: Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: todo.tasks.isNotEmpty
-                                      ? Colors.purple.shade50
-                                      : Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  '${todo.tasks.length} Tasks',
-                                  style: TextStyle(
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          title: Text(
+                            todo.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.deepPurple,
+                            ),
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
                                     color: todo.tasks.isNotEmpty
-                                        ? Colors.deepPurple
-                                        : Colors.grey,
+                                        ? Colors.purple.shade50
+                                        : Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    '${todo.tasks.length} Tasks',
+                                    style: TextStyle(
+                                      color: todo.tasks.isNotEmpty
+                                          ? Colors.deepPurple
+                                          : Colors.grey,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  todo.createdTime.toString().substring(0, 10),
+                                  style: const TextStyle(
+                                    color: Colors.grey,
                                     fontSize: 12,
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                todo.createdTime.toString().substring(0, 10),
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        trailing: Icon(
-                          todo.isCompleted
-                              ? Icons.check_circle
-                              : Icons.circle_outlined,
-                          color: todo.isCompleted ? Colors.green : Colors.grey,
+                          trailing: Icon(
+                            todo.isCompleted
+                                ? Icons.check_circle
+                                : Icons.circle_outlined,
+                            color:
+                                todo.isCompleted ? Colors.green : Colors.grey,
+                          ),
                         ),
                       ),
                     );
