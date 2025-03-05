@@ -63,7 +63,7 @@ class _ProfilePageState extends State<ProfilePage> {
 }
 
 class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({Key? key}) : super(key: key);
+  const _ProfileHeader();
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +79,7 @@ class _ProfileHeader extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 20,
                       spreadRadius: 5,
                     ),
@@ -172,7 +172,7 @@ class _ActionButtons extends StatelessWidget {
 }
 
 class _ProfileInfoCards extends StatelessWidget {
-  const _ProfileInfoCards({Key? key}) : super(key: key);
+  const _ProfileInfoCards();
 
   @override
   Widget build(BuildContext context) {
