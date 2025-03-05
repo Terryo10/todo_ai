@@ -6,6 +6,7 @@ import '../../../domain/bloc/todo_bloc/todo_bloc.dart';
 import '../../../domain/model/course.dart';
 import '../../../domain/model/todo_model.dart';
 import '../todo/create_todo_dialog.dart';
+import '../todo/todo_search_filter_dialogue.dart';
 import 'components/ai_todo_card.dart';
 import 'components/todo_card_item.dart';
 
@@ -21,42 +22,41 @@ class _HomePageState extends State<HomePage> {
   String _selectedFilter = 'All';
   final List<String> _filters = ['All', 'Today', 'Important', 'Completed'];
 
-    List<Todo> _filterTodos(List<Todo> todos) {
+  List<Todo> _filterTodos(List<Todo> todos) {
     switch (_selectedFilter) {
       case 'Today':
         return todos.where((todo) {
           // Check if todo has tasks due today
-          return todo.tasks.any((task) => 
-            task.reminderTime != null && 
-            _isToday(task.reminderTime!)
-          );
+          return todo.tasks.any((task) =>
+              task.reminderTime != null && _isToday(task.reminderTime!));
         }).toList();
-      
+
       case 'Important':
-        return todos.where((todo) => 
-          todo.tasks.any((task) => task.isImportant)
-        ).toList();
-      
+        return todos
+            .where((todo) => todo.tasks.any((task) => task.isImportant))
+            .toList();
+
       case 'Completed':
-        return todos.where((todo) => 
-          todo.isCompleted || 
-          todo.tasks.every((task) => task.isCompleted)
-        ).toList();
-      
+        return todos
+            .where((todo) =>
+                todo.isCompleted ||
+                todo.tasks.every((task) => task.isCompleted))
+            .toList();
+
       case 'All':
       default:
         return todos;
     }
   }
 
-   bool _isToday(DateTime date) {
+  bool _isToday(DateTime date) {
     final now = DateTime.now();
     return date.year == now.year &&
-           date.month == now.month &&
-           date.day == now.day;
+        date.month == now.month &&
+        date.day == now.day;
   }
 
-    @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
@@ -135,6 +135,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
   Widget _buildHeader(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -158,24 +159,37 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: SvgPicture.asset(
-                'assets/icons/User.svg',
-                width: 24,
-                height: 24,
-                colorFilter: ColorFilter.mode(
-                  Theme.of(context).primaryColor,
-                  BlendMode.srcIn,
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.search),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => const TodoSearchFilterDialog(),
+                  );
+                },
+              ),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: SvgPicture.asset(
+                    'assets/icons/User.svg',
+                    width: 24,
+                    height: 24,
+                    colorFilter: ColorFilter.mode(
+                      Theme.of(context).primaryColor,
+                      BlendMode.srcIn,
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ],
       ),
@@ -220,52 +234,49 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
- Widget _buildTodoHeader(BuildContext context) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          "My Todos",
-          style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
+  Widget _buildTodoHeader(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            "My Todos",
+            style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'sort_date',
+                child: Text('Sort by Date'),
               ),
-        ),
-        PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert),
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'sort_date',
-              child: Text('Sort by Date'),
-            ),
-            const PopupMenuItem(
-              value: 'sort_priority',
-              child: Text('Sort by Priority'),
-            ),
-            const PopupMenuItem(
-              value: 'archive_completed',
-              child: Text('Archive Completed'),
-            ),
-          ],
-          onSelected: (value) {
-            if (value == 'sort_date') {
-
-              context.read<TodoBloc>().add(SortTodosByDate());
-            } else if (value == 'sort_priority') {
-
-              context.read<TodoBloc>().add(SortTodosByPriority());
-            } else if (value == 'archive_completed') {
-
-              context.read<TodoBloc>().add(ArchiveCompletedTodos());
-            }
-          },
-        ),
-      ],
-    ),
-  );
-}
+              const PopupMenuItem(
+                value: 'sort_priority',
+                child: Text('Sort by Priority'),
+              ),
+              const PopupMenuItem(
+                value: 'archive_completed',
+                child: Text('Archive Completed'),
+              ),
+            ],
+            onSelected: (value) {
+              if (value == 'sort_date') {
+                context.read<TodoBloc>().add(SortTodosByDate());
+              } else if (value == 'sort_priority') {
+                context.read<TodoBloc>().add(SortTodosByPriority());
+              } else if (value == 'archive_completed') {
+                context.read<TodoBloc>().add(ArchiveCompletedTodos());
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // Add this extension for shadow utilities
