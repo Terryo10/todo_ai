@@ -2,7 +2,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:todo_ai/domain/bloc/todo_bloc/todo_bloc.dart';
-import 'package:intl/intl.dart';
 
 @RoutePage()
 class SingleTaskDetailPage extends StatelessWidget {
