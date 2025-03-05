@@ -110,7 +110,6 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       }
     });
 
-    // Setup initial todos subscription
     _setupTodosSubscription();
   }
 
@@ -123,8 +122,6 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       });
     }
   }
-
-  // ... rest of the methods remain the same ...
 
   @override
   Future<void> close() {
