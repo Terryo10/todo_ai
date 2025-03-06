@@ -13,8 +13,9 @@ class EditProfileLoadingState extends EditProfileState {}
 
 class EditProfileLoadedState extends EditProfileState {
   final String message;
+  final UserModel user;
 
-  const EditProfileLoadedState(this.message);
+  const EditProfileLoadedState(this.message, this.user);
 }
 
 class EditProfileErrorState extends EditProfileState {

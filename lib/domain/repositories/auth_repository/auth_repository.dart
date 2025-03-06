@@ -26,10 +26,14 @@ class AuthRepository {
     return await authProvider.signInWithGoogle();
   }
 
-  Future editProfile(
+  Future<UserModel> editProfile(
       {required String userId, required String displayName}) async {
     return await authProvider.editProfile(
         userId: userId, displayName: displayName);
+  }
+
+  Future<UserModel> getProfile({required String userId}) async {
+    return await authProvider.getProfile(userId: userId);
   }
 
   Future<UserModel> loginWithApple() async {

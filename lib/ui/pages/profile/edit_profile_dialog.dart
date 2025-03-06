@@ -36,6 +36,18 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
         displayName = authState.displayName;
         _nameController.text = authState.displayName;
       });
+      context.read<EditProfileBloc>().add(GetProfile(
+            userId: authState.userId,
+          ));
+    }
+
+    final editProfileState = context.read<EditProfileBloc>().state;
+
+    if (editProfileState is EditProfileLoadedState) {
+      setState(() {
+        displayName = editProfileState.user.displayName ?? '';
+        _nameController.text = editProfileState.user.displayName ?? '';
+      });
     }
   }
 
@@ -114,7 +126,9 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
                                     userId: state.userId,
                                     displayName: _nameController.text,
                                   ));
-
+                              context.read<EditProfileBloc>().add(GetProfile(
+                                    userId: state.userId,
+                                  ));
                               Navigator.of(context).pop(true);
                             }
                           },

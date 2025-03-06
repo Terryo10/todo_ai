@@ -13,3 +13,9 @@ class EditProfile extends EditProfileEvent {
 
   const EditProfile({required this.userId, required this.displayName});
 }
+
+class GetProfile extends EditProfileEvent {
+  final String userId;
+
+  const GetProfile({required this.userId});
+}

@@ -188,11 +188,42 @@ class AuthProvider {
         );
   }
 
-  Future<void> editProfile(
-      {required String userId, required String displayName}) async {
+  Future<UserModel> editProfile({
+    required String userId,
+    required String displayName,
+  }) async {
+    // Update Firestore document
     await firestore.collection('users').doc(userId).set(
       {'displayName': displayName},
       SetOptions(merge: true),
     );
+
+    // Fetch the updated user document
+    DocumentSnapshot userDoc =
+        await firestore.collection('users').doc(userId).get();
+
+    // Ensure the document exists before using its data
+    if (!userDoc.exists) {
+      throw Exception("User not found");
+    }
+
+    // Convert Firestore data to UserModel
+    return UserModel.fromMap(userDoc.data() as Map<String, dynamic>);
+  }
+
+  Future<UserModel> getProfile({
+    required String userId,
+  }) async {
+    // Fetch the updated user document
+    DocumentSnapshot userDoc =
+        await firestore.collection('users').doc(userId).get();
+
+    // Ensure the document exists before using its data
+    if (!userDoc.exists) {
+      throw Exception("User not found");
+    }
+
+    // Convert Firestore data to UserModel
+    return UserModel.fromMap(userDoc.data() as Map<String, dynamic>);
   }
 }

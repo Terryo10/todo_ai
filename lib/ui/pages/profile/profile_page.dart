@@ -2,9 +2,10 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:todo_ai/domain/bloc/auth_bloc/auth_bloc.dart';
+import 'package:todo_ai/domain/bloc/edit_profile_bloc/edit_profile_bloc.dart';
 import 'package:todo_ai/domain/bloc/todo_bloc/todo_bloc.dart';
 
+import '../../../domain/bloc/auth_bloc/auth_bloc.dart';
 import '../../../routes/router.gr.dart';
 import 'edit_profile_dialog.dart';
 
@@ -17,6 +18,22 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  @override
+  void initState() {
+    super.initState();
+    init();
+  }
+
+  void init() {
+    final authState = context.read<AuthBloc>().state;
+
+    if (authState is AuthAuthenticatedState) {
+      context.read<EditProfileBloc>().add(GetProfile(
+            userId: authState.userId,
+          ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,63 +86,59 @@ class _ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        if (state is AuthAuthenticatedState) {
-          return Column(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 20,
-                      spreadRadius: 5,
-                    ),
-                  ],
-                ),
-                child: CircleAvatar(
-                  radius: 60,
-                  backgroundColor: Colors.white,
-                  child: SvgPicture.asset(
-                    'assets/icons/User.svg',
-                    width: 75,
-                    height: 75,
-                    colorFilter: ColorFilter.mode(
-                      Theme.of(context).primaryColor,
-                      BlendMode.srcIn,
+    return BlocListener<EditProfileBloc, EditProfileState>(
+      listener: (context, state) {},
+      child: BlocBuilder<EditProfileBloc, EditProfileState>(
+        builder: (context, state) {
+          if (state is EditProfileLoadedState) {
+            return Column(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: CircleAvatar(
+                    radius: 60,
+                    backgroundColor: Colors.white,
+                    child: SvgPicture.asset(
+                      'assets/icons/User.svg',
+                      width: 75,
+                      height: 75,
+                      colorFilter: ColorFilter.mode(
+                        Theme.of(context).primaryColor,
+                        BlendMode.srcIn,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              BlocBuilder<AuthBloc, AuthState>(
-                builder: (context, state) {
-                  if (state is AuthAuthenticatedState) {
-                    return Text(
-                      state.displayName,
-                      style: textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    );
-                  }
-                  return Container();
-                },
-              ),
-              const SizedBox(height: 4),
-              Text(
-                state.email,
-                style: textTheme.titleMedium?.copyWith(
-                  color: Colors.black54,
+                const SizedBox(height: 16),
+                Text(
+                  state.user.displayName ?? '',
+                  style: textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            ],
-          );
-        }
+                const SizedBox(height: 4),
+                Text(
+                  state.user.email ?? '',
+                  style: textTheme.titleMedium?.copyWith(
+                    color: Colors.black54,
+                  ),
+                ),
+              ],
+            );
+          }
 
-        return Column();
-      },
+          return Column();
+        },
+      ),
     );
   }
 }
