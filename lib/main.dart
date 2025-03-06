@@ -34,7 +34,7 @@ void main() async {
 
     final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
     final GoogleSignIn googleSignIn;
-    
+
     if (Platform.isIOS) {
       googleSignIn = GoogleSignIn(
           clientId:

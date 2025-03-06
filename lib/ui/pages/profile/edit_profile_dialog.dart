@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:todo_ai/domain/bloc/edit_profile_bloc/edit_profile_bloc.dart';
 
 import '../../../domain/bloc/auth_bloc/auth_bloc.dart';
-import '../../../domain/bloc/todo_bloc/todo_bloc.dart';
 
 class EditProfileDialog extends StatefulWidget {
   const EditProfileDialog({super.key});
@@ -14,11 +14,29 @@ class EditProfileDialog extends StatefulWidget {
 class _EditProfileDialogState extends State<EditProfileDialog> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  String displayName = "";
+
+  @override
+  void initState() {
+    super.initState();
+    init();
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
     super.dispose();
+  }
+
+  void init() {
+    final authState = context.read<AuthBloc>().state;
+
+    if (authState is AuthAuthenticatedState) {
+      setState(() {
+        displayName = authState.displayName;
+        _nameController.text = authState.displayName;
+      });
+    }
   }
 
   @override
@@ -92,9 +110,11 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
                         return ElevatedButton(
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
-                              context.read<TodoBloc>().add(AddTodo(
-                                    name: _nameController.text,
+                              context.read<EditProfileBloc>().add(EditProfile(
+                                    userId: state.userId,
+                                    displayName: _nameController.text,
                                   ));
+
                               Navigator.of(context).pop(true);
                             }
                           },
@@ -106,7 +126,41 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text('Save Profile'),
+                          child:
+                              BlocListener<EditProfileBloc, EditProfileState>(
+                            listener: (context, state) {
+                              if (state is EditProfileErrorState) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(state.message),
+                                    behavior: SnackBarBehavior
+                                        .floating, // Makes it appear as a bottom sheet
+                                    backgroundColor: Colors
+                                        .red, // Highlighting it as an error
+                                  ),
+                                );
+                              } else if (state is EditProfileLoadedState) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(state.message),
+                                    behavior: SnackBarBehavior
+                                        .floating, // Makes it appear as a bottom sheet
+                                    backgroundColor: Colors
+                                        .green, // Highlighting it as an error
+                                  ),
+                                );
+                              }
+                            },
+                            child:
+                                BlocBuilder<EditProfileBloc, EditProfileState>(
+                              builder: (context, state) {
+                                if (state is EditProfileLoadingState) {
+                                  return const Text('Updating Profile');
+                                }
+                                return const Text('Save Profile');
+                              },
+                            ),
+                          ),
                         );
                       }
                       return Container();

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:todo_ai/domain/bloc/edit_profile_bloc/edit_profile_bloc.dart';
 import 'package:todo_ai/domain/bloc/prompt_generator_bloc/prompt_generator_bloc.dart';
 import 'package:todo_ai/domain/repositories/todo_repository/todo_provider.dart';
 import 'package:todo_ai/domain/repositories/todo_repository/todo_repository.dart';
@@ -52,6 +53,11 @@ class AppBlocs extends StatelessWidget {
         BlocProvider(
           create: (context) => PromptGeneratorBloc(
             todoProvider: TodoProvider(),
+          ),
+        ),
+        BlocProvider(
+          create: (context) => EditProfileBloc(
+            RepositoryProvider.of<AuthRepository>(context),
           ),
         ),
       ],

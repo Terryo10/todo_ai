@@ -9,9 +9,9 @@ class AuthRepository {
 
   AuthRepository({required this.storage, required this.authProvider});
 
-    Stream<UserModel?> get authStateChanges => authProvider.authStateChanges;
+  Stream<UserModel?> get authStateChanges => authProvider.authStateChanges;
 
-    UserModel? getCurrentUser() => authProvider.getCurrentUser();
+  UserModel? getCurrentUser() => authProvider.getCurrentUser();
 
   Future<void> logOut() async {
     await storage.deleteAll();
@@ -26,6 +26,11 @@ class AuthRepository {
     return await authProvider.signInWithGoogle();
   }
 
+  Future editProfile(
+      {required String userId, required String displayName}) async {
+    return await authProvider.editProfile(
+        userId: userId, displayName: displayName);
+  }
 
   Future<UserModel> loginWithApple() async {
     return await authProvider.signInWithApple();

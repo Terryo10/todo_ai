@@ -187,4 +187,12 @@ class AuthProvider {
           SetOptions(merge: true),
         );
   }
+
+  Future<void> editProfile(
+      {required String userId, required String displayName}) async {
+    await firestore.collection('users').doc(userId).set(
+      {'displayName': displayName},
+      SetOptions(merge: true),
+    );
+  }
 }
