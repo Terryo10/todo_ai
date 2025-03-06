@@ -4,6 +4,7 @@ import 'package:todo_ai/domain/bloc/prompt_generator_bloc/prompt_generator_bloc.
 import 'package:todo_ai/domain/repositories/todo_repository/todo_provider.dart';
 import 'package:todo_ai/domain/repositories/todo_repository/todo_repository.dart';
 
+import 'bloc/settings_bloc/settings_bloc.dart';
 import 'bloc/todo_bloc/todo_bloc.dart';
 import 'repositories/auth_repository/auth_repository.dart';
 import 'repositories/cache_repository/cache_repository.dart';
@@ -57,6 +58,11 @@ class AppBlocs extends StatelessWidget {
         ),
         BlocProvider(
           create: (context) => EditProfileBloc(
+            RepositoryProvider.of<AuthRepository>(context),
+          ),
+        ),
+        BlocProvider(
+          create: (context) => SettingsBloc(
             RepositoryProvider.of<AuthRepository>(context),
           ),
         ),
