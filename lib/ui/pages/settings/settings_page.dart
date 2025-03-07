@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,7 +23,9 @@ class _SettingsPageState extends State<SettingsPage> {
   // Local state for switches - in a real app, these would come from a settings bloc
   bool _silentMode = false;
   bool _vibrationMode = true;
-  bool _darkTheme = false;
+  bool _darkTheme =
+      PlatformDispatcher.instance.platformBrightness == Brightness.dark;
+
   String _accountType = "Free";
   int _remainingDays = 0;
 
