@@ -9,9 +9,9 @@ sealed class SettingsEvent extends Equatable {
 
 class SaveSettings extends SettingsEvent {
   final String userId;
-  final String isDarkMode;
-  final String isSilentMode;
-  final String isVibration;
+  final bool isDarkMode;
+  final bool isSilentMode;
+  final bool isVibration;
 
   const SaveSettings(this.isSilentMode, this.isVibration,
       {required this.userId, required this.isDarkMode});

@@ -9,6 +9,8 @@ sealed class SettingsState extends Equatable {
 
 final class SettingsInitial extends SettingsState {}
 
+final class SettingsloadingState extends SettingsState {}
+
 class UserSettingsLoadedState extends SettingsState {
   final String message;
   final SettingsModel settings;

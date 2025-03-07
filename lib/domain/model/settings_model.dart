@@ -1,23 +1,23 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SettingsModel {
-  final bool isVibration;
+  final bool isVibrationMode;
   final bool isDarkMode;
-  final bool isSilentMode;
+  final bool isSilenceMode;
   final String userId;
 
   SettingsModel({
-    required this.isVibration,
+    required this.isVibrationMode,
     required this.isDarkMode,
-    required this.isSilentMode,
+    required this.isSilenceMode,
     required this.userId,
   });
 
   Map<String, dynamic> toMap() {
     return {
-      'isVibration': isVibration,
+      'isVibrationMode': isVibrationMode,
       'userId': userId,
-      'isSilentMode': isSilentMode,
+      'isSilenceMode': isSilenceMode,
 
       'isDarkMode': isDarkMode, // Added to map
     };
@@ -25,9 +25,9 @@ class SettingsModel {
 
   factory SettingsModel.fromMap(Map<String, dynamic> map) {
     return SettingsModel(
-      isVibration: map['isVibration'] ?? false,
+      isVibrationMode: map['isVibrationMode'] ?? false,
       userId: map['userId'] ?? '',
-      isSilentMode: map['isSilentMode'] ?? true,
+      isSilenceMode: map['isSilenceMode'] ?? true,
       isDarkMode: map['isDarkMode'] ?? false,
     );
   }
@@ -35,12 +35,12 @@ class SettingsModel {
   SettingsModel copyWith({
     bool? id,
     String? userId,
-    bool? isSilentMode,
+    bool? isSilenceMode,
     bool? isDarkMode,
   }) {
     return SettingsModel(
-      isVibration: isVibration,
-      isSilentMode: this.isSilentMode,
+      isVibrationMode: isVibrationMode,
+      isSilenceMode: this.isSilenceMode,
       userId: userId ?? '',
       isDarkMode: isDarkMode ?? this.isDarkMode,
     );

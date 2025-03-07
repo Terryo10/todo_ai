@@ -1,5 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../domain/bloc/auth_bloc/auth_bloc.dart';
+import '../../../domain/bloc/settings_bloc/settings_bloc.dart';
 // Assume these imports exist in your project
 // import 'package:your_app/bloc/settings/settings_bloc.dart';
 // import 'package:your_app/bloc/theme/theme_bloc.dart';
@@ -43,6 +47,30 @@ class _SettingsPageState extends State<SettingsPage> {
       _remainingDays = userState.subscriptionRemainingDays;
     }
     */
+    init();
+  }
+
+  void init() {
+    final authState = context.read<AuthBloc>().state;
+
+    if (authState is AuthAuthenticatedState) {
+      context.read<SettingsBloc>().add(GetUserSettings(
+            userId: authState.userId,
+          ));
+    }
+  }
+
+  void updateUserSettings(
+      {required bool isDarkMode,
+      required bool isSilenceMode,
+      required bool isVibrationMode}) {
+    final authState = context.read<AuthBloc>().state;
+
+    if (authState is AuthAuthenticatedState) {
+      context.read<SettingsBloc>().add(SaveSettings(
+          isSilenceMode, isVibrationMode,
+          userId: authState.userId, isDarkMode: isDarkMode));
+    }
   }
 
   @override
@@ -57,20 +85,39 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _buildSettingsList() {
-    return ListView(
-      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-      children: [
-        _buildSectionHeader('Notifications'),
-        _buildNotificationSettings(),
-        const SizedBox(height: 24),
-        _buildSectionHeader('Appearance'),
-        _buildAppearanceSettings(),
-        const SizedBox(height: 24),
-        _buildSectionHeader('Account'),
-        _buildAccountSettings(),
-        if (_accountType != "Free" && _remainingDays > 0)
-          _buildSubscriptionInfo(),
-      ],
+    return BlocListener<SettingsBloc, SettingsState>(
+      listener: (context, state) {
+        final state = context.read<SettingsBloc>().state;
+
+        if (state is UserSettingsLoadedState) {
+          setState(() {
+            _silentMode = state.settings.isSilenceMode;
+            _vibrationMode = state.settings.isVibrationMode;
+            _darkTheme = state.settings.isDarkMode;
+          });
+        }
+      },
+      child: ListView(
+        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+        children: [
+          _buildSectionHeader('Notifications'),
+          _buildNotificationSettings(
+              isVibrationMode: _vibrationMode,
+              isDarkMode: _darkTheme,
+              isSilenceMode: _silentMode),
+          const SizedBox(height: 24),
+          _buildSectionHeader('Appearance'),
+          _buildAppearanceSettings(
+              isVibrationMode: _vibrationMode,
+              isDarkMode: _darkTheme,
+              isSilenceMode: _silentMode),
+          const SizedBox(height: 24),
+          _buildSectionHeader('Account'),
+          _buildAccountSettings(),
+          if (_accountType != "Free" && _remainingDays > 0)
+            _buildSubscriptionInfo(),
+        ],
+      ),
     );
   }
 
@@ -88,7 +135,10 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildNotificationSettings() {
+  Widget _buildNotificationSettings(
+      {required bool isDarkMode,
+      required bool isSilenceMode,
+      required bool isVibrationMode}) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -103,6 +153,10 @@ class _SettingsPageState extends State<SettingsPage> {
               subtitle: const Text('No sound for notifications'),
               value: _silentMode,
               onChanged: (value) {
+                updateUserSettings(
+                    isDarkMode: isDarkMode,
+                    isSilenceMode: value,
+                    isVibrationMode: isVibrationMode);
                 setState(() {
                   _silentMode = value;
                 });
@@ -117,6 +171,10 @@ class _SettingsPageState extends State<SettingsPage> {
               subtitle: const Text('Vibrate on notifications'),
               value: _vibrationMode,
               onChanged: (value) {
+                updateUserSettings(
+                    isDarkMode: isDarkMode,
+                    isSilenceMode: isSilenceMode,
+                    isVibrationMode: value);
                 setState(() {
                   _vibrationMode = value;
                 });
@@ -130,7 +188,10 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildAppearanceSettings() {
+  Widget _buildAppearanceSettings(
+      {required bool isDarkMode,
+      required bool isSilenceMode,
+      required bool isVibrationMode}) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -143,6 +204,10 @@ class _SettingsPageState extends State<SettingsPage> {
           subtitle: const Text('Use dark colors for the app'),
           value: _darkTheme,
           onChanged: (value) {
+            updateUserSettings(
+                isDarkMode: value,
+                isSilenceMode: isSilenceMode,
+                isVibrationMode: isVibrationMode);
             setState(() {
               _darkTheme = value;
             });
