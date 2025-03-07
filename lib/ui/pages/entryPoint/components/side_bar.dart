@@ -1,5 +1,7 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:todo_ai/routes/router.gr.dart';
 import '../../../../domain/bloc/auth_bloc/auth_bloc.dart';
 import '../../../../domain/model/menu.dart';
 import '../../../../utils/rive_utils.dart';
@@ -35,9 +37,14 @@ class _SideBarState extends State<SideBar> {
               BlocBuilder<AuthBloc, AuthState>(
                 builder: (context, state) {
                   if (state is AuthAuthenticatedState) {
-                    return InfoCard(
-                      name: state.displayName,
-                      bio: state.email,
+                    return InkWell(
+                      onTap: () {
+                        context.navigateTo(ProfileRoute());
+                      },
+                      child: InfoCard(
+                        name: state.displayName,
+                        bio: state.email,
+                      ),
                     );
                   }
                   return const InfoCard(
@@ -62,6 +69,9 @@ class _SideBarState extends State<SideBar> {
                     press: () {
                       if (menu.title.contains('My Todos')) {
                         // context.navigateTo(TodoRouteRoute());
+                        return;
+                      } else if (menu.title.contains('Settings')) {
+                        context.navigateTo(SettingsRoute());
                         return;
                       }
                       RiveUtils.chnageSMIBoolState(menu.rive.status!);
