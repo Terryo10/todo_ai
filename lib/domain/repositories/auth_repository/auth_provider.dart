@@ -7,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../model/settings_model.dart';
 import '../../model/user_model.dart';
 
 class AuthProvider {
@@ -211,6 +212,34 @@ class AuthProvider {
     return UserModel.fromMap(userDoc.data() as Map<String, dynamic>);
   }
 
+  Future<SettingsModel> saveSettings(
+      {required String userId,
+      required bool isDarkMode,
+      required bool isSilenceMode,
+      required bool isVibrationMode}) async {
+    // Update Firestore document
+    await firestore.collection('settings').doc(userId).set(
+      {
+        'isDarkMode': isDarkMode,
+        'isVibrationMode': isVibrationMode,
+        'isSilenceMode': isSilenceMode
+      },
+      SetOptions(merge: true),
+    );
+
+    // Fetch the updated user document
+    DocumentSnapshot userDoc =
+        await firestore.collection('settings').doc(userId).get();
+
+    // Ensure the document exists before using its data
+    if (!userDoc.exists) {
+      throw Exception("Settings not found");
+    }
+
+    // Convert Firestore data to UserModel
+    return SettingsModel.fromMap(userDoc.data() as Map<String, dynamic>);
+  }
+
   Future<UserModel> getProfile({
     required String userId,
   }) async {
@@ -225,5 +254,21 @@ class AuthProvider {
 
     // Convert Firestore data to UserModel
     return UserModel.fromMap(userDoc.data() as Map<String, dynamic>);
+  }
+
+  Future<SettingsModel> getSettings({
+    required String userId,
+  }) async {
+    // Fetch the updated user document
+    DocumentSnapshot userDoc =
+        await firestore.collection('settings').doc(userId).get();
+
+    // Ensure the document exists before using its data
+    if (!userDoc.exists) {
+      throw Exception("Settings not found");
+    }
+
+    // Convert Firestore data to UserModel
+    return SettingsModel.fromMap(userDoc.data() as Map<String, dynamic>);
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:todo_ai/domain/model/user_model.dart';
 
+import '../../model/settings_model.dart';
 import 'auth_provider.dart';
 
 class AuthRepository {
@@ -32,8 +33,24 @@ class AuthRepository {
         userId: userId, displayName: displayName);
   }
 
+  Future<SettingsModel> saveSettings(
+      {required String userId,
+      required bool isDarkMode,
+      required bool isSilenceMode,
+      required bool isVibrationMode}) async {
+    return await authProvider.saveSettings(
+        userId: userId,
+        isDarkMode: isDarkMode,
+        isSilenceMode: isSilenceMode,
+        isVibrationMode: isVibrationMode);
+  }
+
   Future<UserModel> getProfile({required String userId}) async {
     return await authProvider.getProfile(userId: userId);
+  }
+
+  Future<SettingsModel> getSettings({required String userId}) async {
+    return await authProvider.getSettings(userId: userId);
   }
 
   Future<UserModel> loginWithApple() async {

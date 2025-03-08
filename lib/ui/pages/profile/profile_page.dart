@@ -134,6 +134,48 @@ class _ProfileHeader extends StatelessWidget {
                 ),
               ],
             );
+          } else if (state is EditProfileLoadingState) {
+            return Column(
+              children: [
+                // Avatar skeleton loader
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: CircleAvatar(
+                    radius: 60,
+                    backgroundColor: Colors.grey.shade300,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Name skeleton loader
+                Container(
+                  width: 200,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                // Email skeleton loader
+                Container(
+                  width: 240,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ],
+            );
           }
 
           return Column();

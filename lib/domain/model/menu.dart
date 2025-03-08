@@ -22,13 +22,13 @@ List<Menu> sidebarMenus = [
   //       artboard: "SEARCH",
   //       stateMachineName: "SEARCH_Interactivity"),
   // ),
-  // Menu(
-  //   title: "Favorites",
-  //   rive: RiveModel(
-  //       src: "assets/RiveAssets/icons.riv",
-  //       artboard: "LIKE/STAR",
-  //       stateMachineName: "STAR_Interactivity"),
-  // ),
+  Menu(
+    title: "Settings",
+    rive: RiveModel(
+        src: "assets/RiveAssets/icons.riv",
+        artboard: "LIKE/STAR",
+        stateMachineName: "SETTINGS_Interactivity"),
+  ),
   Menu(
     title: "My Todos",
     rive: RiveModel(
