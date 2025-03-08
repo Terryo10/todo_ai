@@ -96,10 +96,8 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
                       }
                       return null;
                     }),
-          
+
                 const SizedBox(height: 24),
-          
-                // Reminder Section with Creative Touch
                 Card(
                   elevation: 4,
                   shape: RoundedRectangleBorder(
@@ -128,13 +126,13 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
                               lastDate:
                                   DateTime.now().add(const Duration(days: 365)),
                             );
-          
+
                             if (date != null && context.mounted) {
                               final time = await showTimePicker(
                                 context: context,
                                 initialTime: TimeOfDay.now(),
                               );
-          
+
                               if (time != null) {
                                 setState(() {
                                   _reminderTime = DateTime(
@@ -160,10 +158,8 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
                     ),
                   ),
                 ),
-          
+
                 const SizedBox(height: 24),
-          
-                // Important Task Section with Creative Design
                 Row(
                   children: [
                     const Text(
@@ -195,9 +191,9 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
                     ),
                   ],
                 ),
-          
+
                 const SizedBox(height: 24),
-          
+
                 // Action Buttons
                 Row(
                   children: [

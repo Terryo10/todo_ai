@@ -140,12 +140,11 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       }
     });
 
-    // Update connectivity subscription to use current user ID
     _connectivitySubscription =
         _repository.watchConnectivity().listen((connectivityResult) {
       if (connectivityResult != ConnectivityResult.none &&
           _currentUserId != null) {
-        _repository.syncWithFirebase(_currentUserId!); // Pass the user ID
+        _repository.syncWithFirebase(_currentUserId!);
       }
     });
 
