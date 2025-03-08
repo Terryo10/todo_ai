@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -11,10 +12,12 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive/hive.dart';
 import 'package:todo_ai/domain/model/todo_model.dart';
 import 'package:todo_ai/firebase_options.dart';
+import 'domain/bloc/theme_bloc/theme_bloc.dart';
 import 'domain/repositories/todo_repository/todo_repository.dart';
 import 'routes/router.dart';
 import 'domain/app_blocs.dart';
 import 'domain/app_repositories.dart';
+import 'static/app_colors.dart';
 
 void main() async {
   try {
@@ -102,10 +105,17 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Todo AI',
-      routerDelegate: widget.appRouter.delegate(),
-      routeInformationParser: widget.appRouter.defaultRouteParser(),
+    return BlocBuilder<ThemeBloc, ThemeState>(
+      builder: (context, themeState) {
+        return MaterialApp.router(
+          title: 'Todo AI',
+          theme: AppThemeData.lightTheme(),
+          darkTheme: AppThemeData.darkTheme(),
+          themeMode: themeState.themeMode,
+          routerDelegate: widget.appRouter.delegate(),
+          routeInformationParser: widget.appRouter.defaultRouteParser(),
+        );
+      },
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:todo_ai/routes/router.gr.dart';
+import '../../../domain/bloc/theme_bloc/theme_bloc.dart';
 import '../../../domain/bloc/todo_bloc/todo_bloc.dart';
 import '../../../domain/model/course.dart';
 import '../../../domain/model/todo_model.dart';
@@ -59,85 +60,100 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 50),
-                  _buildHeader(context),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: AiTodoCard(
-                      iconSrc: 'assets/icons/code.svg',
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildFilters(),
-                  _buildTodoHeader(context),
-                ],
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: BlocBuilder<TodoBloc, TodoState>(
-                builder: (context, state) {
-                  if (state is TodoLoaded) {
-                    // Apply filter to todos
-                    final filteredTodos = _filterTodos(state.todos);
+    return BlocBuilder<ThemeBloc, ThemeState>(
+      builder: (context, themeState) {
+        final theme = Theme.of(context);
+        final colorScheme = theme.colorScheme;
 
-                    return SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final todo = filteredTodos[index];
-                          return KeyedSubtree(
-                            key: ValueKey(todo.id),
-                            child: Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: TodoCardItem(todo: todo),
-                            ),
-                          );
-                        },
-                        childCount: filteredTodos.length,
+        return Scaffold(
+          backgroundColor: colorScheme.background,
+          body: SafeArea(
+            bottom: false,
+            child: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 50),
+                      _buildHeader(context),
+                      const SizedBox(height: 20),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: AiTodoCard(
+                          iconSrc: 'assets/icons/code.svg',
+                        ),
                       ),
-                    );
-                  }
-                  return const SliverToBoxAdapter(
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                },
-              ),
+                      const SizedBox(height: 20),
+                      _buildFilters(),
+                      _buildTodoHeader(context),
+                    ],
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: BlocBuilder<TodoBloc, TodoState>(
+                    builder: (context, state) {
+                      if (state is TodoLoaded) {
+                        // Apply filter to todos
+                        final filteredTodos = _filterTodos(state.todos);
+
+                        return SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final todo = filteredTodos[index];
+                              return KeyedSubtree(
+                                key: ValueKey(todo.id),
+                                child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: TodoCardItem(todo: todo),
+                                ),
+                              );
+                            },
+                            childCount: filteredTodos.length,
+                          ),
+                        );
+                      }
+                      return SliverToBoxAdapter(
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: MediaQuery.of(context).size.height * .15,
+                  ),
+                ),
+              ],
             ),
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: MediaQuery.of(context).size.height * .15,
-              ),
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () async {
+              await showDialog<bool>(
+                context: context,
+                builder: (context) => const CreateTodoDialog(),
+              );
+            },
+            backgroundColor: colorScheme.primary,
+            child: Icon(
+              Icons.add,
+              color: colorScheme.onPrimary,
             ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await showDialog<bool>(
-            context: context,
-            builder: (context) => const CreateTodoDialog(),
-          );
-        },
-        backgroundColor: Theme.of(context).primaryColor,
-        child: const Icon(
-          Icons.add,
-          color: Colors.white,
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Row(
@@ -148,22 +164,23 @@ class _HomePageState extends State<HomePage> {
             children: [
               Text(
                 'Hello',
-                style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: theme.textTheme.headlineSmall!.copyWith(
+                  color: colorScheme.onBackground,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 'You have ${recentCourses.length} tasks pending',
-                style: TextStyle(color: Colors.grey[600]),
+                style: TextStyle(
+                    color: colorScheme.onBackground.withValues(alpha: 0.6)),
               ),
             ],
           ),
           Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.search),
+                icon: Icon(Icons.search, color: colorScheme.onBackground),
                 onPressed: () {
                   showDialog(
                     context: context,
@@ -172,14 +189,14 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
               InkWell(
-                onTap: (){
+                onTap: () {
                   context.navigateTo(ProfileRoute());
                 },
                 child: Container(
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                    color: colorScheme.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -188,7 +205,7 @@ class _HomePageState extends State<HomePage> {
                       width: 24,
                       height: 24,
                       colorFilter: ColorFilter.mode(
-                        Theme.of(context).primaryColor,
+                        colorScheme.primary,
                         BlendMode.srcIn,
                       ),
                     ),
@@ -203,6 +220,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildFilters() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return SizedBox(
       height: 40,
       child: ListView.builder(
@@ -221,13 +241,13 @@ class _HomePageState extends State<HomePage> {
               onSelected: (selected) {
                 setState(() => _selectedFilter = filter);
               },
-              backgroundColor: Colors.grey[200],
-              selectedColor:
-                  Theme.of(context).primaryColor.withValues(alpha: 0.2),
+              backgroundColor: theme.brightness == Brightness.dark
+                  ? colorScheme.surface
+                  : Colors.grey[200],
+              selectedColor: colorScheme.primary.withValues(alpha: 0.2),
               labelStyle: TextStyle(
-                color: isSelected
-                    ? Theme.of(context).primaryColor
-                    : Colors.black87,
+                color:
+                    isSelected ? colorScheme.primary : colorScheme.onBackground,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
               shape: RoundedRectangleBorder(
@@ -241,6 +261,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildTodoHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Row(
@@ -248,25 +271,35 @@ class _HomePageState extends State<HomePage> {
         children: [
           Text(
             "My Todos",
-            style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
+            style: theme.textTheme.headlineSmall!.copyWith(
+              color: colorScheme.onBackground,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
+            icon: Icon(Icons.more_vert, color: colorScheme.onBackground),
+            color: colorScheme.surface,
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'sort_date',
-                child: Text('Sort by Date'),
+                child: Text(
+                  'Sort by Date',
+                  style: TextStyle(color: colorScheme.onSurface),
+                ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'sort_priority',
-                child: Text('Sort by Priority'),
+                child: Text(
+                  'Sort by Priority',
+                  style: TextStyle(color: colorScheme.onSurface),
+                ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'archive_completed',
-                child: Text('Archive Completed'),
+                child: Text(
+                  'Archive Completed',
+                  style: TextStyle(color: colorScheme.onSurface),
+                ),
               ),
             ],
             onSelected: (value) {

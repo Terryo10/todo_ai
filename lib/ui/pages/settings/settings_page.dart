@@ -6,10 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/bloc/auth_bloc/auth_bloc.dart';
 import '../../../domain/bloc/settings_bloc/settings_bloc.dart';
-// Assume these imports exist in your project
-// import 'package:your_app/bloc/settings/settings_bloc.dart';
-// import 'package:your_app/bloc/theme/theme_bloc.dart';
-// import 'package:your_app/bloc/user/user_bloc.dart';
+import '../../../domain/bloc/theme_bloc/theme_bloc.dart';
+import '../../../static/app_colors.dart';
 
 @RoutePage()
 class SettingsPage extends StatefulWidget {
@@ -20,11 +18,8 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  // Local state for switches - in a real app, these would come from a settings bloc
   bool _silentMode = false;
   bool _vibrationMode = true;
-  bool _darkTheme =
-      PlatformDispatcher.instance.platformBrightness == Brightness.dark;
 
   String _accountType = "Free";
   int _remainingDays = 0;
@@ -32,25 +27,6 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    // Uncomment and modify to get settings from your actual bloc
-    /*
-    final settingsState = context.read<SettingsBloc>().state;
-    if (settingsState is SettingsLoaded) {
-      _silentMode = settingsState.silentMode;
-      _vibrationMode = settingsState.vibrationMode;
-    }
-    
-    final themeState = context.read<ThemeBloc>().state;
-    if (themeState is ThemeLoaded) {
-      _darkTheme = themeState.isDarkMode;
-    }
-    
-    final userState = context.read<UserBloc>().state;
-    if (userState is UserLoaded) {
-      _accountType = userState.accountType;
-      _remainingDays = userState.subscriptionRemainingDays;
-    }
-    */
     init();
   }
 
@@ -74,15 +50,31 @@ class _SettingsPageState extends State<SettingsPage> {
       context.read<SettingsBloc>().add(SaveSettings(
           isSilenceMode, isVibrationMode,
           userId: authState.userId, isDarkMode: isDarkMode));
+
+      // Update theme using ThemeBloc
+      if (isDarkMode) {
+        context.read<ThemeBloc>().add(const ThemeChanged(AppTheme.dark));
+      } else {
+        context.read<ThemeBloc>().add(const ThemeChanged(AppTheme.light));
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
+      backgroundColor: colorScheme.background,
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(
+          'Settings',
+          style: TextStyle(color: colorScheme.onBackground),
+        ),
+        backgroundColor: colorScheme.background,
         elevation: 0,
+        iconTheme: IconThemeData(color: colorScheme.primary),
       ),
       body: _buildSettingsList(),
     );
@@ -97,35 +89,54 @@ class _SettingsPageState extends State<SettingsPage> {
           setState(() {
             _silentMode = state.settings.isSilenceMode;
             _vibrationMode = state.settings.isVibrationMode;
-            _darkTheme = state.settings.isDarkMode;
+
+            // Update theme bloc based on settings
+            final isDarkMode = state.settings.isDarkMode;
+            final themeBloc = context.read<ThemeBloc>();
+            if (isDarkMode) {
+              themeBloc.add(const ThemeChanged(AppTheme.dark));
+            } else {
+              themeBloc.add(const ThemeChanged(AppTheme.light));
+            }
           });
         }
       },
-      child: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-        children: [
-          _buildSectionHeader('Notifications'),
-          _buildNotificationSettings(
-              isVibrationMode: _vibrationMode,
-              isDarkMode: _darkTheme,
-              isSilenceMode: _silentMode),
-          const SizedBox(height: 24),
-          _buildSectionHeader('Appearance'),
-          _buildAppearanceSettings(
-              isVibrationMode: _vibrationMode,
-              isDarkMode: _darkTheme,
-              isSilenceMode: _silentMode),
-          const SizedBox(height: 24),
-          _buildSectionHeader('Account'),
-          _buildAccountSettings(),
-          if (_accountType != "Free" && _remainingDays > 0)
-            _buildSubscriptionInfo(),
-        ],
+      child: BlocBuilder<ThemeBloc, ThemeState>(
+        builder: (context, themeState) {
+          final isDarkMode = themeState.appTheme == AppTheme.dark;
+          final theme = Theme.of(context);
+          final colorScheme = theme.colorScheme;
+
+          return ListView(
+            padding:
+                const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+            children: [
+              _buildSectionHeader('Notifications'),
+              _buildNotificationSettings(
+                  isVibrationMode: _vibrationMode,
+                  isDarkMode: isDarkMode,
+                  isSilenceMode: _silentMode),
+              const SizedBox(height: 24),
+              _buildSectionHeader('Appearance'),
+              _buildAppearanceSettings(
+                  isVibrationMode: _vibrationMode,
+                  isDarkMode: isDarkMode,
+                  isSilenceMode: _silentMode),
+              const SizedBox(height: 24),
+              _buildSectionHeader('Account'),
+              _buildAccountSettings(),
+              if (_accountType != "Free" && _remainingDays > 0)
+                _buildSubscriptionInfo(),
+            ],
+          );
+        },
       ),
     );
   }
 
   Widget _buildSectionHeader(String title) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Text(
@@ -133,7 +144,7 @@ class _SettingsPageState extends State<SettingsPage> {
         style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: Theme.of(context).primaryColor,
+          color: colorScheme.primary,
         ),
       ),
     );
@@ -143,8 +154,12 @@ class _SettingsPageState extends State<SettingsPage> {
       {required bool isDarkMode,
       required bool isSilenceMode,
       required bool isVibrationMode}) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Card(
       elevation: 2,
+      shadowColor: isDarkMode ? AppColors.shadowDark : AppColors.shadowLight,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -153,8 +168,15 @@ class _SettingsPageState extends State<SettingsPage> {
         child: Column(
           children: [
             SwitchListTile(
-              title: const Text('Silent Mode'),
-              subtitle: const Text('No sound for notifications'),
+              title: Text(
+                'Silent Mode',
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
+              subtitle: Text(
+                'No sound for notifications',
+                style: TextStyle(
+                    color: colorScheme.onSurface.withValues(alpha: 0.7)),
+              ),
               value: _silentMode,
               onChanged: (value) {
                 updateUserSettings(
@@ -164,15 +186,22 @@ class _SettingsPageState extends State<SettingsPage> {
                 setState(() {
                   _silentMode = value;
                 });
-                // Uncomment to dispatch to your bloc
-                // context.read<SettingsBloc>().add(ToggleSilentMode(value));
               },
-              secondary: const Icon(Icons.volume_off),
+              secondary: Icon(Icons.volume_off, color: colorScheme.primary),
+              activeColor: colorScheme.primary,
             ),
-            const Divider(height: 1),
+            Divider(
+                height: 1, color: colorScheme.onSurface.withValues(alpha: 0.2)),
             SwitchListTile(
-              title: const Text('Vibration'),
-              subtitle: const Text('Vibrate on notifications'),
+              title: Text(
+                'Vibration',
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
+              subtitle: Text(
+                'Vibrate on notifications',
+                style: TextStyle(
+                    color: colorScheme.onSurface.withValues(alpha: 0.7)),
+              ),
               value: _vibrationMode,
               onChanged: (value) {
                 updateUserSettings(
@@ -182,9 +211,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 setState(() {
                   _vibrationMode = value;
                 });
-                // context.read<SettingsBloc>().add(ToggleVibrationMode(value));
               },
-              secondary: const Icon(Icons.vibration),
+              secondary: Icon(Icons.vibration, color: colorScheme.primary),
+              activeColor: colorScheme.primary,
             ),
           ],
         ),
@@ -196,36 +225,48 @@ class _SettingsPageState extends State<SettingsPage> {
       {required bool isDarkMode,
       required bool isSilenceMode,
       required bool isVibrationMode}) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Card(
       elevation: 2,
+      shadowColor: isDarkMode ? AppColors.shadowDark : AppColors.shadowLight,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
       child: Padding(
         padding: const EdgeInsets.all(4.0),
         child: SwitchListTile(
-          title: const Text('Dark Theme'),
-          subtitle: const Text('Use dark colors for the app'),
-          value: _darkTheme,
+          title: Text(
+            'Dark Theme',
+            style: TextStyle(color: colorScheme.onSurface),
+          ),
+          subtitle: Text(
+            'Use dark colors for the app',
+            style:
+                TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.7)),
+          ),
+          value: isDarkMode,
           onChanged: (value) {
             updateUserSettings(
                 isDarkMode: value,
                 isSilenceMode: isSilenceMode,
                 isVibrationMode: isVibrationMode);
-            setState(() {
-              _darkTheme = value;
-            });
-            // context.read<ThemeBloc>().add(ToggleDarkMode(value));
           },
-          secondary: const Icon(Icons.dark_mode),
+          secondary: Icon(Icons.dark_mode, color: colorScheme.primary),
+          activeColor: colorScheme.primary,
         ),
       ),
     );
   }
 
   Widget _buildAccountSettings() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Card(
       elevation: 2,
+      shadowColor: colorScheme.shadow,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -235,11 +276,20 @@ class _SettingsPageState extends State<SettingsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ListTile(
-              title: const Text('Account Type'),
-              subtitle: Text(_accountType),
-              leading: const Icon(Icons.account_circle),
+              title: Text(
+                'Account Type',
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
+              subtitle: Text(
+                _accountType,
+                style: TextStyle(
+                    color: colorScheme.onSurface.withValues(alpha: 0.7)),
+              ),
+              leading: Icon(Icons.account_circle, color: colorScheme.primary),
               trailing: _accountType == "Free"
-                  ? const Icon(Icons.arrow_forward_ios, size: 16)
+                  ? Icon(Icons.arrow_forward_ios,
+                      size: 16,
+                      color: colorScheme.onSurface.withValues(alpha: 0.7))
                   : null,
             ),
             const SizedBox(height: 16),
@@ -255,6 +305,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: colorScheme.onPrimary,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -274,8 +326,12 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _buildSubscriptionInfo() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Card(
       elevation: 2,
+      shadowColor: colorScheme.shadow,
       margin: const EdgeInsets.only(top: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -287,12 +343,12 @@ class _SettingsPageState extends State<SettingsPage> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                color: colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 Icons.access_time,
-                color: Theme.of(context).primaryColor,
+                color: colorScheme.primary,
               ),
             ),
             const SizedBox(width: 16),
@@ -300,10 +356,11 @@ class _SettingsPageState extends State<SettingsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Subscription Status',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -323,28 +380,52 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showSubscriptionDialog() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Upgrade to Premium'),
-        content: const Column(
+        backgroundColor: colorScheme.surface,
+        title: Text(
+          'Upgrade to Premium',
+          style: TextStyle(color: colorScheme.onSurface),
+        ),
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              title: Text('Monthly Plan'),
-              subtitle: Text('\$4.99/month'),
-              leading: Icon(Icons.calendar_month),
+              title: Text(
+                'Monthly Plan',
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
+              subtitle: Text(
+                '\$4.99/month',
+                style: TextStyle(
+                    color: colorScheme.onSurface.withValues(alpha: 0.7)),
+              ),
+              leading: Icon(Icons.calendar_month, color: colorScheme.primary),
             ),
             ListTile(
-              title: Text('Annual Plan'),
-              subtitle: Text('\$49.99/year (Save 16%)'),
-              leading: Icon(Icons.calendar_today),
+              title: Text(
+                'Annual Plan',
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
+              subtitle: Text(
+                '\$49.99/year (Save 16%)',
+                style: TextStyle(
+                    color: colorScheme.onSurface.withValues(alpha: 0.7)),
+              ),
+              leading: Icon(Icons.calendar_today, color: colorScheme.primary),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              foregroundColor: colorScheme.primary,
+            ),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
@@ -352,6 +433,10 @@ class _SettingsPageState extends State<SettingsPage> {
               // Handle purchase
               Navigator.pop(context);
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+            ),
             child: const Text('Continue'),
           ),
         ],
@@ -360,29 +445,53 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showManageSubscriptionDialog() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Manage Subscription'),
-        content: const Column(
+        backgroundColor: colorScheme.surface,
+        title: Text(
+          'Manage Subscription',
+          style: TextStyle(color: colorScheme.onSurface),
+        ),
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              title: Text('Current Plan'),
-              subtitle: Text('Premium Annual'),
-              leading: Icon(Icons.star),
+              title: Text(
+                'Current Plan',
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
+              subtitle: Text(
+                'Premium Annual',
+                style: TextStyle(
+                    color: colorScheme.onSurface.withValues(alpha: 0.7)),
+              ),
+              leading: Icon(Icons.star, color: colorScheme.primary),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             ListTile(
-              title: Text('Next Billing Date'),
-              subtitle: Text('March 15, 2025'),
-              leading: Icon(Icons.date_range),
+              title: Text(
+                'Next Billing Date',
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
+              subtitle: Text(
+                'March 15, 2025',
+                style: TextStyle(
+                    color: colorScheme.onSurface.withValues(alpha: 0.7)),
+              ),
+              leading: Icon(Icons.date_range, color: colorScheme.primary),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              foregroundColor: colorScheme.primary,
+            ),
             child: const Text('Cancel'),
           ),
           TextButton(
@@ -400,6 +509,10 @@ class _SettingsPageState extends State<SettingsPage> {
               // Handle update
               Navigator.pop(context);
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+            ),
             child: const Text('Update Plan'),
           ),
         ],

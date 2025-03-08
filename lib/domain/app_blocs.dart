@@ -5,6 +5,7 @@ import 'package:todo_ai/domain/repositories/todo_repository/todo_provider.dart';
 import 'package:todo_ai/domain/repositories/todo_repository/todo_repository.dart';
 
 import 'bloc/settings_bloc/settings_bloc.dart';
+import 'bloc/theme_bloc/theme_bloc.dart';
 import 'bloc/todo_bloc/todo_bloc.dart';
 import 'repositories/auth_repository/auth_repository.dart';
 import 'repositories/cache_repository/cache_repository.dart';
@@ -29,6 +30,9 @@ class AppBlocs extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider<ThemeBloc>(
+          create: (context) => ThemeBloc(storage: storage)..add(ThemeLoaded()),
+        ),
         BlocProvider(
           create: (context) => CacheBloc(
             cacheRepository: RepositoryProvider.of<CacheRepository>(context),
