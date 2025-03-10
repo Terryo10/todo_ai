@@ -3,11 +3,9 @@ import 'dart:math';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
-import '../../../constants.dart';
-import '../home/home_screen.dart';
 
 import '../../../domain/model/menu.dart';
-
+import '../home/home_screen.dart';
 import 'components/menu_btn.dart';
 import 'components/side_bar.dart';
 
@@ -64,12 +62,15 @@ class _EntryPointState extends State<EntryPointPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       extendBody: true,
       resizeToAvoidBottomInset: false,
-      backgroundColor: backgroundColor2,
+      backgroundColor: theme.colorScheme.background,
       body: Stack(
         children: [
+          // Side menu
           AnimatedPositioned(
             width: 288,
             height: MediaQuery.of(context).size.height,
@@ -79,6 +80,7 @@ class _EntryPointState extends State<EntryPointPage>
             top: 0,
             child: const SideBar(),
           ),
+          // Main content - animated
           Transform(
             alignment: Alignment.center,
             transform: Matrix4.identity()
@@ -89,8 +91,8 @@ class _EntryPointState extends State<EntryPointPage>
               offset: Offset(animation.value * 265, 0),
               child: Transform.scale(
                 scale: scalAnimation.value,
-                child: const ClipRRect(
-                  borderRadius: BorderRadius.all(
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.all(
                     Radius.circular(24),
                   ),
                   child: HomePage(),
@@ -98,6 +100,7 @@ class _EntryPointState extends State<EntryPointPage>
               ),
             ),
           ),
+          // Menu button
           AnimatedPositioned(
             duration: const Duration(milliseconds: 200),
             curve: Curves.fastOutSlowIn,

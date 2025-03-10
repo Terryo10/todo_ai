@@ -28,6 +28,8 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return BlocBuilder<TodoBloc, TodoState>(
       builder: (context, state) {
         Todo? currentTodo = state is TodoLoaded
@@ -44,17 +46,19 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
             currentTodo.tasks.where((task) => task.isCompleted).toList();
 
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: theme.colorScheme.background,
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: theme.colorScheme.background,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              icon:
+                  Icon(Icons.arrow_back, color: theme.colorScheme.onBackground),
               onPressed: () => Navigator.of(context).pop(),
             ),
             actions: [
               PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert, color: Colors.black),
+                icon: Icon(Icons.more_vert,
+                    color: theme.colorScheme.onBackground),
                 itemBuilder: (context) => [
                   _buildPopupMenuItem('Edit', Icons.edit),
                   _buildPopupMenuItem('Delete', Icons.delete),
@@ -113,9 +117,9 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
             ),
           ),
           floatingActionButton: FloatingActionButton(
-            backgroundColor: const Color(0xFF6B4EFF),
+            backgroundColor: theme.colorScheme.primary,
             onPressed: () => _showAddTaskDialog(context, currentTodo),
-            child: const Icon(Icons.add, color: Colors.white),
+            child: Icon(Icons.add, color: theme.colorScheme.onPrimary),
           ),
         );
       },
@@ -129,6 +133,8 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
       String sectionTitle,
       bool isExpanded,
       VoidCallback onToggle) {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -139,16 +145,14 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
             children: [
               Text(
                 sectionTitle,
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 18,
+                style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               IconButton(
                 icon: Icon(
                   isExpanded ? Icons.expand_less : Icons.expand_more,
-                  color: Colors.black,
+                  color: theme.colorScheme.onBackground,
                 ),
                 onPressed: onToggle,
               ),
@@ -170,37 +174,15 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
     );
   }
 
-  // Widget _buildTasksSection(
-  //     BuildContext context, Todo todo, List<Task> tasks, String sectionTitle) {
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: [
-  //       Text(
-  //         sectionTitle,
-  //         style: TextStyle(
-  //           color: Colors.black,
-  //           fontSize: 18,
-  //           fontWeight: FontWeight.bold,
-  //         ),
-  //       ),
-  //       const SizedBox(height: 12),
-  //       ListView.builder(
-  //         shrinkWrap: true,
-  //         physics: const NeverScrollableScrollPhysics(),
-  //         itemCount: tasks.length,
-  //         itemBuilder: (context, index) {
-  //           return _buildTaskItem(context, todo, tasks[index]);
-  //         },
-  //       ),
-  //     ],
-  //   );
-  // }
-
   Widget _buildTaskItem(BuildContext context, Todo todo, Task task) {
+    final theme = Theme.of(context);
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: theme.brightness == Brightness.light
+            ? const Color(0xFFF5F5F5)
+            : theme.colorScheme.surfaceVariant,
         borderRadius: BorderRadius.circular(8),
       ),
       child: InkWell(
@@ -217,12 +199,12 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
               const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           leading: Checkbox(
             value: task.isCompleted,
-            activeColor: const Color(0xFF6B4EFF),
+            activeColor: theme.colorScheme.primary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(4),
             ),
             side: BorderSide(
-              color: Colors.grey.shade300,
+              color: theme.colorScheme.onSurface.withOpacity(0.3),
               width: 2,
             ),
             onChanged: (value) {
@@ -238,8 +220,7 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
           ),
           title: Text(
             task.name,
-            style: TextStyle(
-              color: Colors.black,
+            style: theme.textTheme.bodyLarge?.copyWith(
               decoration: task.isCompleted ? TextDecoration.lineThrough : null,
             ),
           ),
@@ -249,12 +230,12 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
               if (task.assignedTo != null)
                 Text(
                   'Assigned to: ${task.assignedTo!}',
-                  style: const TextStyle(color: Colors.black54, fontSize: 12),
+                  style: theme.textTheme.bodySmall,
                 ),
               if (task.reminderTime != null)
                 Text(
                   'Reminder: ${DateFormat.yMMMd().add_jm().format(task.reminderTime!)}',
-                  style: const TextStyle(color: Colors.black54, fontSize: 12),
+                  style: theme.textTheme.bodySmall,
                 ),
             ],
           ),
@@ -267,15 +248,17 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
   }
 
   PopupMenuItem<String> _buildPopupMenuItem(String text, IconData icon) {
+    final theme = Theme.of(context);
+
     return PopupMenuItem(
       value: text,
       child: Row(
         children: [
-          Icon(icon, color: Colors.black),
+          Icon(icon, color: theme.colorScheme.onSurface),
           const SizedBox(width: 10),
           Text(
             text,
-            style: const TextStyle(color: Colors.black),
+            style: TextStyle(color: theme.colorScheme.onSurface),
           ),
         ],
       ),
@@ -283,10 +266,14 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
   }
 
   Widget _buildTodoHeader(BuildContext context, Todo todo) {
+    final theme = Theme.of(context);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: theme.brightness == Brightness.light
+            ? const Color(0xFFF5F5F5)
+            : theme.colorScheme.surfaceVariant,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -298,9 +285,7 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
               Expanded(
                 child: Text(
                   todo.name,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 22,
+                  style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -308,7 +293,7 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
               ),
               Checkbox(
                 value: todo.isCompleted,
-                activeColor: const Color(0xFF6B4EFF),
+                activeColor: theme.colorScheme.primary,
                 onChanged: (value) {
                   if (value != null) {
                     context.read<TodoBloc>().add(UpdateTodo(
@@ -331,13 +316,16 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
   }
 
   Widget _buildInfoRow(IconData icon, String text) {
+    final theme = Theme.of(context);
+
     return Row(
       children: [
-        Icon(icon, color: Colors.black54, size: 16),
+        Icon(icon,
+            color: theme.colorScheme.onSurface.withOpacity(0.6), size: 16),
         const SizedBox(width: 8),
         Text(
           text,
-          style: const TextStyle(color: Colors.black54),
+          style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6)),
         ),
       ],
     );
@@ -361,7 +349,7 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
   }
 
   Future<void> _showEditTodoDialog(BuildContext context, Todo todo) async {
-    // Will impliment editing code here
+    // Will implement editing code here
     // final updatedTodo = await showDialog<Todo>(
     //   context: context,
     //   // builder: (context) => EditTodoDialog(todo: todo),
@@ -373,15 +361,22 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
   }
 
   Future<void> _showDeleteConfirmation(BuildContext context, Todo todo) async {
+    final theme = Theme.of(context);
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Todo'),
-        content: const Text('Are you sure you want to delete this todo?'),
+        backgroundColor: theme.colorScheme.surface,
+        title: Text('Delete Todo', style: theme.textTheme.titleLarge),
+        content: Text(
+          'Are you sure you want to delete this todo?',
+          style: theme.textTheme.bodyMedium,
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text('Cancel',
+                style: TextStyle(color: theme.colorScheme.primary)),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),

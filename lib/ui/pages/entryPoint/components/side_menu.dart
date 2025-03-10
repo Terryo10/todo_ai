@@ -4,12 +4,13 @@ import 'package:rive/rive.dart';
 import '../../../../domain/model/menu.dart';
 
 class SideMenu extends StatelessWidget {
-  const SideMenu(
-      {super.key,
-      required this.menu,
-      required this.press,
-      required this.riveOnInit,
-      required this.selectedMenu});
+  const SideMenu({
+    super.key,
+    required this.menu,
+    required this.press,
+    required this.riveOnInit,
+    required this.selectedMenu
+  });
 
   final Menu menu;
   final VoidCallback press;
@@ -18,41 +19,73 @@ class SideMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isSelected = selectedMenu == menu;
+    
     return Column(
       children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 24),
-          child: Divider(color: Colors.white24, height: 1),
+        Padding(
+          padding: const EdgeInsets.only(left: 24),
+          child: Divider(
+            color: theme.colorScheme.onSurface.withOpacity(0.2),
+            height: 1
+          ),
         ),
         Stack(
           children: [
+            // Selection indicator
             AnimatedPositioned(
               duration: const Duration(milliseconds: 300),
               curve: Curves.fastOutSlowIn,
-              width: selectedMenu == menu ? 288 : 0,
+              width: isSelected ? 5 : 0,
               height: 56,
               left: 0,
               child: Container(
-                decoration: const BoxDecoration(
-                  color: Color(0xFF6792FF),
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                decoration: BoxDecoration(
+                  color: theme.brightness == Brightness.dark 
+                    ? theme.colorScheme.primary
+                    : Colors.white,
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(4),
+                    bottomRight: Radius.circular(4),
+                  ),
                 ),
               ),
             ),
-            ListTile(
-              onTap: press,
-              leading: SizedBox(
-                height: 36,
-                width: 36,
-                child: RiveAnimation.asset(
-                  menu.rive.src,
-                  artboard: menu.rive.artboard,
-                  onInit: riveOnInit,
-                ),
+            // Menu item
+            Container(
+              margin: const EdgeInsets.only(right: 12),
+              decoration: BoxDecoration(
+                color: isSelected 
+                  ? (theme.brightness == Brightness.dark 
+                      ? theme.colorScheme.primaryContainer.withOpacity(0.35) 
+                      : Colors.white.withOpacity(0.2))
+                  : Colors.transparent,
+                borderRadius: BorderRadius.circular(10),
               ),
-              title: Text(
-                menu.title,
-                style: const TextStyle(color: Colors.white),
+              child: ListTile(
+                onTap: press,
+                dense: true,
+                leading: SizedBox(
+                  height: 36,
+                  width: 36,
+                  child: RiveAnimation.asset(
+                    menu.rive.src,
+                    artboard: menu.rive.artboard,
+                    onInit: riveOnInit,
+                  ),
+                ),
+                title: Text(
+                  menu.title,
+                  style: TextStyle(
+                    color: isSelected 
+                      ? (theme.brightness == Brightness.dark 
+                          ? theme.colorScheme.primary 
+                          : Colors.white)
+                      : theme.colorScheme.onSurface,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
               ),
             ),
           ],

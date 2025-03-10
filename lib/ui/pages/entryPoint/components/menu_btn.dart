@@ -9,6 +9,8 @@ class MenuBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return SafeArea(
       child: GestureDetector(
         onTap: press,
@@ -16,13 +18,13 @@ class MenuBtn extends StatelessWidget {
           margin: const EdgeInsets.only(left: 12),
           height: 40,
           width: 40,
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Colors.black12,
-                offset: Offset(0, 3),
+                color: theme.colorScheme.shadow.withOpacity(0.2),
+                offset: const Offset(0, 3),
                 blurRadius: 8,
               ),
             ],

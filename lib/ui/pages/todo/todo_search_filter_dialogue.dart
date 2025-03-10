@@ -56,8 +56,6 @@ class _TodoSearchFilterDialogState extends State<TodoSearchFilterDialog> {
         final Color gradientEnd =
             isDark ? AppColors.backgroundDark2 : Colors.purple.shade50;
 
-        // Define accent color based on theme
-        final Color accentColor = colorScheme.primary;
         final Color searchFieldColor = isDark
             ? colorScheme.surface.withOpacity(0.3)
             : Colors.purple.shade50.withOpacity(0.5);

@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,8 +19,8 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _silentMode = false;
   bool _vibrationMode = true;
 
-  String _accountType = "Free";
-  int _remainingDays = 0;
+  final String _accountType = "Free";
+  final int _remainingDays = 0;
 
   @override
   void initState() {
@@ -104,10 +102,7 @@ class _SettingsPageState extends State<SettingsPage> {
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, themeState) {
           final isDarkMode = themeState.appTheme == AppTheme.dark;
-          final theme = Theme.of(context);
-          final colorScheme = theme.colorScheme;
-
-          return ListView(
+             return ListView(
             padding:
                 const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
             children: [

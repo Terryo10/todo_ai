@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class SettingsModel {
   final bool isVibrationMode;
   final bool isDarkMode;

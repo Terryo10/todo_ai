@@ -14,6 +14,8 @@ class AnimatedBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return GestureDetector(
       onTap: press,
       child: SizedBox(
@@ -31,11 +33,20 @@ class AnimatedBtn extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Icon(CupertinoIcons.arrow_right),
+                  Icon(
+                    CupertinoIcons.arrow_right,
+                    color: theme.colorScheme.primary,
+                    size: 22,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     "Start Whizzing",
-                    style: Theme.of(context).textTheme.labelLarge,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: Colors
+                          .black87, // Force dark text for visibility on white button will fix theme here
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
                   )
                 ],
               ),

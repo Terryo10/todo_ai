@@ -36,17 +36,20 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
+      backgroundColor: theme.colorScheme.background,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          icon: Icon(Icons.arrow_back, color: theme.colorScheme.onBackground),
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings, color: Colors.black87),
+            icon: Icon(Icons.settings, color: theme.colorScheme.onBackground),
             onPressed: () {
               context.navigateTo(SettingsRoute());
             },
@@ -84,7 +87,8 @@ class _ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
 
     return BlocListener<EditProfileBloc, EditProfileState>(
       listener: (context, state) {},
@@ -98,7 +102,7 @@ class _ProfileHeader extends StatelessWidget {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
+                        color: theme.colorScheme.shadow.withOpacity(0.1),
                         blurRadius: 20,
                         spreadRadius: 5,
                       ),
@@ -106,13 +110,13 @@ class _ProfileHeader extends StatelessWidget {
                   ),
                   child: CircleAvatar(
                     radius: 60,
-                    backgroundColor: Colors.white,
+                    backgroundColor: theme.colorScheme.surface,
                     child: SvgPicture.asset(
                       'assets/icons/User.svg',
                       width: 75,
                       height: 75,
                       colorFilter: ColorFilter.mode(
-                        Theme.of(context).primaryColor,
+                        theme.colorScheme.primary,
                         BlendMode.srcIn,
                       ),
                     ),
@@ -123,18 +127,20 @@ class _ProfileHeader extends StatelessWidget {
                   state.user.displayName ?? '',
                   style: textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onBackground,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   state.user.email ?? '',
                   style: textTheme.titleMedium?.copyWith(
-                    color: Colors.black54,
+                    color: theme.colorScheme.onBackground.withOpacity(0.6),
                   ),
                 ),
               ],
             );
           } else if (state is EditProfileLoadingState) {
+            // Skeleton loading state
             return Column(
               children: [
                 // Avatar skeleton loader
@@ -143,7 +149,7 @@ class _ProfileHeader extends StatelessWidget {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: theme.colorScheme.shadow.withOpacity(0.1),
                         blurRadius: 20,
                         spreadRadius: 5,
                       ),
@@ -151,7 +157,9 @@ class _ProfileHeader extends StatelessWidget {
                   ),
                   child: CircleAvatar(
                     radius: 60,
-                    backgroundColor: Colors.grey.shade300,
+                    backgroundColor: theme.brightness == Brightness.light
+                        ? Colors.grey.shade300
+                        : Colors.grey.shade700,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -160,7 +168,9 @@ class _ProfileHeader extends StatelessWidget {
                   width: 200,
                   height: 24,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: theme.brightness == Brightness.light
+                        ? Colors.grey.shade300
+                        : Colors.grey.shade700,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -170,7 +180,9 @@ class _ProfileHeader extends StatelessWidget {
                   width: 240,
                   height: 18,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: theme.brightness == Brightness.light
+                        ? Colors.grey.shade300
+                        : Colors.grey.shade700,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -178,7 +190,7 @@ class _ProfileHeader extends StatelessWidget {
             );
           }
 
-          return Column();
+          return const Column();
         },
       ),
     );
@@ -188,6 +200,8 @@ class _ProfileHeader extends StatelessWidget {
 class _ActionButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -201,6 +215,8 @@ class _ActionButtons extends StatelessWidget {
           icon: const Icon(Icons.edit),
           label: const Text("Edit Profile"),
           style: ElevatedButton.styleFrom(
+            foregroundColor: theme.colorScheme.onPrimary,
+            backgroundColor: theme.colorScheme.primary,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -212,9 +228,11 @@ class _ActionButtons extends StatelessWidget {
           onPressed: () {
             context.navigateTo(HomeRoute());
           },
-          icon: const Icon(Icons.list_alt_rounded),
-          label: const Text("My Todos"),
+          icon: Icon(Icons.list_alt_rounded, color: theme.colorScheme.primary),
+          label: Text("My Todos",
+              style: TextStyle(color: theme.colorScheme.primary)),
           style: OutlinedButton.styleFrom(
+            side: BorderSide(color: theme.colorScheme.primary),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -274,36 +292,42 @@ class _InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Card(
       elevation: 4,
-      shadowColor: Colors.black26,
+      shadowColor: theme.colorScheme.shadow.withOpacity(0.3),
+      color: theme.colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: theme.colorScheme.primary.withOpacity(0.2),
+          width: 1.0,
+        ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(1.0),
+        padding: const EdgeInsets.all(8.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               item.icon,
               size: 32,
-              color: Theme.of(context).primaryColor,
+              color: theme.colorScheme.primary,
             ),
             const SizedBox(height: 8),
             Text(
               item.value.toString(),
-              style: const TextStyle(
+              style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                fontSize: 22,
+                color: theme.colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               item.title,
-              style: TextStyle(
-                color: Colors.black54,
-                fontSize: 14,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
               ),
               textAlign: TextAlign.center,
             ),

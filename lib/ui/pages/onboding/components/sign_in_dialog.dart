@@ -11,10 +11,10 @@ void showCustomSignInDialog(BuildContext context,
     context: context,
     barrierLabel: "Barrier",
     barrierDismissible: true,
-    barrierColor: Colors.black.withValues(alpha: 0.5), // Fixed incorrect method
+    barrierColor: Colors.black.withOpacity(0.5),
     transitionDuration: const Duration(milliseconds: 400),
     pageBuilder: (_, __, ___) {
-      return _SignInDialog(onDismiss: onDismiss); // Extracted widget
+      return _SignInDialog(onDismiss: onDismiss);
     },
   );
 }
@@ -26,12 +26,13 @@ class _SignInDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticatedState) {
           if (context.mounted) {
             onDismiss();
-            // Navigator.of(context, rootNavigator: true).pop();
           }
         }
         if (state is AuthErrorState) {
@@ -39,7 +40,7 @@ class _SignInDialog extends StatelessWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
-                backgroundColor: Colors.red,
+                backgroundColor: theme.colorScheme.error,
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -47,7 +48,6 @@ class _SignInDialog extends StatelessWidget {
         }
       },
       child: Center(
-        // ignore: deprecated_member_use
         child: WillPopScope(
           onWillPop: () async {
             onDismiss();
@@ -63,8 +63,15 @@ class _SignInDialog extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: theme.colorScheme.shadow.withOpacity(0.2),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
               ),
               child: BlocBuilder<AuthBloc, AuthState>(
                 builder: (context, state) {
@@ -72,18 +79,20 @@ class _SignInDialog extends StatelessWidget {
                     return SizedBox(
                       height: 24,
                       width: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2.5),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: theme.colorScheme.primary,
+                      ),
                     );
                   }
                   return Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
+                      Text(
                         "Unlock Smart Productivity!",
-                        style: TextStyle(
-                          fontSize: 24,
+                        style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E1E1E),
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -91,20 +100,26 @@ class _SignInDialog extends StatelessWidget {
                       _SignInButton(
                         icon: "assets/icons/google.svg",
                         text: "Continue with Google",
-                        backgroundColor: Colors.white,
-                        textColor: Colors.black87,
-                        borderColor: Colors.grey.shade300,
+                        backgroundColor: theme.colorScheme.surface,
+                        textColor: theme.colorScheme.onSurface,
+                        borderColor: theme.colorScheme.outline.withOpacity(0.5),
                         authEvent: LoginWithGoogle(),
                       ),
                       if (Platform.isIOS)
                         _SignInButton(
                           icon: "assets/icons/apple.svg",
                           text: "Continue with Apple",
-                          backgroundColor: Colors.black,
-                          textColor: Colors.white,
-                          iconColor: Colors.white,
+                          backgroundColor: theme.brightness == Brightness.dark
+                              ? theme.colorScheme.surface
+                              : Colors.black,
+                          textColor: theme.brightness == Brightness.dark
+                              ? theme.colorScheme.onSurface
+                              : Colors.white,
+                          iconColor: theme.brightness == Brightness.dark
+                              ? theme.colorScheme.onSurface
+                              : Colors.white,
                           authEvent: LoginWithApple(),
-                        ), // Extracted BlocBuilder
+                        ),
                     ],
                   );
                 },
@@ -120,13 +135,18 @@ class _SignInDialog extends StatelessWidget {
 class _SignInOptions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         if (state is AuthLoadingState) {
           return SizedBox(
             height: 24,
             width: 24,
-            child: CircularProgressIndicator(strokeWidth: 2.5),
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              color: theme.colorScheme.primary,
+            ),
           );
         }
         return Flexible(
@@ -137,23 +157,23 @@ class _SignInOptions extends StatelessWidget {
                 _FeatureItem(
                     icon: "assets/icons/ai.svg",
                     text: "AI-Generated Tasks",
-                    iconColor: Color(0xFF6C63FF)),
+                    iconColor: theme.colorScheme.primary),
                 _FeatureItem(
                     icon: "assets/icons/reminder.svg",
                     text: "Smart Reminders",
-                    iconColor: Color(0xFF4CAF50)),
+                    iconColor: theme.colorScheme.secondary),
                 _FeatureItem(
                     icon: "assets/icons/organize.svg",
                     text: "Effortless Organization",
-                    iconColor: Color(0xFF2196F3)),
+                    iconColor: theme.colorScheme.tertiary),
                 _FeatureItem(
                     icon: "assets/icons/sync.svg",
                     text: "Sync Across Devices",
-                    iconColor: Color(0xFF9C27B0)),
+                    iconColor: theme.colorScheme.primary.withBlue(220)),
                 _FeatureItem(
                     icon: "assets/icons/share.svg",
                     text: "Share Tasks Easily",
-                    iconColor: Color(0xFFFF9800)),
+                    iconColor: theme.colorScheme.secondary.withRed(240)),
               ],
             ),
           ),
@@ -176,6 +196,8 @@ class _FeatureItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -189,10 +211,9 @@ class _FeatureItem extends StatelessWidget {
           const SizedBox(width: 12),
           Text(
             text,
-            style: TextStyle(
-              color: Colors.black87,
-              fontSize: 16,
+            style: theme.textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.w500,
+              color: theme.colorScheme.onSurface,
             ),
           ),
         ],
@@ -222,6 +243,8 @@ class _SignInButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         final bool isLoading = state is AuthLoadingState &&
@@ -240,6 +263,7 @@ class _SignInButton extends StatelessWidget {
                   },
             style: ElevatedButton.styleFrom(
               backgroundColor: backgroundColor,
+              foregroundColor: textColor,
               minimumSize: const Size(double.infinity, 50),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -268,7 +292,7 @@ class _SignInButton extends StatelessWidget {
                         colorFilter: icon.contains('google')
                             ? null
                             : ColorFilter.mode(
-                                iconColor ?? Colors.white,
+                                iconColor ?? theme.colorScheme.onPrimary,
                                 BlendMode.srcIn,
                               ),
                       ),

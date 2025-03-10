@@ -17,20 +17,31 @@ class SideBar extends StatefulWidget {
 
 class _SideBarState extends State<SideBar> {
   Menu selectedSideMenu = sidebarMenus.first;
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    // Determine text color based on theme brightness for better contrast
+    final textColor = theme.brightness == Brightness.dark
+        ? theme.colorScheme.onSurface
+        : Colors.white;
+
     return SafeArea(
       child: Container(
         width: 288,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          color: Color(0xFF17203A),
-          borderRadius: BorderRadius.all(
+        decoration: BoxDecoration(
+          color: theme.brightness == Brightness.dark
+              ? theme.colorScheme.surface
+              : const Color(
+                  0xFF6C63FF), // Use a solid purple color instead of primaryContainer
+          borderRadius: const BorderRadius.all(
             Radius.circular(30),
           ),
         ),
         child: DefaultTextStyle(
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: textColor),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -57,10 +68,9 @@ class _SideBarState extends State<SideBar> {
                 padding: const EdgeInsets.only(left: 24, top: 32, bottom: 16),
                 child: Text(
                   "Browse".toUpperCase(),
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium!
-                      .copyWith(color: Colors.white70),
+                  style: theme.textTheme.titleMedium!.copyWith(
+                    color: textColor.withOpacity(0.7),
+                  ),
                 ),
               ),
               ...sidebarMenus.map((menu) => SideMenu(
@@ -88,10 +98,9 @@ class _SideBarState extends State<SideBar> {
                 padding: const EdgeInsets.only(left: 24, top: 40, bottom: 16),
                 child: Text(
                   "History".toUpperCase(),
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium!
-                      .copyWith(color: Colors.white70),
+                  style: theme.textTheme.titleMedium!.copyWith(
+                    color: textColor.withOpacity(0.7),
+                  ),
                 ),
               ),
               ...sidebarMenus2.map(

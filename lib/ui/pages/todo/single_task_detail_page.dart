@@ -13,6 +13,8 @@ class SingleTaskDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return BlocBuilder<TodoBloc, TodoState>(
       builder: (context, state) {
         if (state is TodoLoaded) {
@@ -20,35 +22,22 @@ class SingleTaskDetailPage extends StatelessWidget {
           final task = todo.tasks.firstWhere((t) => t.id == taskId);
 
           return Scaffold(
-            backgroundColor: const Color(0xFF1E1E1E),
+            backgroundColor: theme.colorScheme.background,
             appBar: AppBar(
-              backgroundColor: const Color(0xFF1E1E1E),
+              backgroundColor: theme.colorScheme.background,
               elevation: 0,
-              leading: GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  alignment: Alignment.center,
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 8),
-                      const Icon(Icons.arrow_back_ios,
-                          color: Colors.blue, size: 18),
-                      Text(
-                        'SlimRiff',
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  ),
+              leading: IconButton(
+                icon: Icon(
+                  Icons.arrow_back_ios,
+                  color: theme.colorScheme.primary,
+                  size: 20,
                 ),
+                onPressed: () => Navigator.pop(context),
               ),
-              leadingWidth: 120,
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.star_border, color: Colors.white),
+                  icon: Icon(Icons.star_border,
+                      color: theme.colorScheme.onBackground),
                   onPressed: () {},
                 )
               ],
@@ -64,7 +53,7 @@ class SingleTaskDetailPage extends StatelessWidget {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade800,
+                          color: theme.colorScheme.primaryContainer,
                           shape: BoxShape.circle,
                         ),
                         child: Center(
@@ -72,7 +61,7 @@ class SingleTaskDetailPage extends StatelessWidget {
                             task.isCompleted
                                 ? Icons.check_circle
                                 : Icons.circle_outlined,
-                            color: Colors.white,
+                            color: theme.colorScheme.onPrimaryContainer,
                             size: 20,
                           ),
                         ),
@@ -81,10 +70,8 @@ class SingleTaskDetailPage extends StatelessWidget {
                       Expanded(
                         child: Text(
                           task.name,
-                          style: const TextStyle(
-                            fontSize: 22,
+                          style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w500,
-                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -92,57 +79,63 @@ class SingleTaskDetailPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Divider(color: Color(0xFF333333), height: 1),
+                Divider(color: theme.dividerTheme.color, height: 1),
                 _buildActionRow(
+                  context: context,
                   icon: Icons.add,
                   label: 'Add Step',
-                  color: Colors.blue,
+                  color: theme.colorScheme.primary,
                   onTap: () {},
                 ),
-                const Divider(color: Color(0xFF333333), height: 1),
+                Divider(color: theme.dividerTheme.color, height: 1),
                 _buildActionRow(
+                  context: context,
                   icon: Icons.wb_sunny_outlined,
                   label: 'Add to My Day',
                   onTap: () {},
                 ),
-                const Divider(color: Color(0xFF333333), height: 1),
+                Divider(color: theme.dividerTheme.color, height: 1),
                 _buildActionRow(
+                  context: context,
                   icon: Icons.notifications_none,
                   label: 'Remind Me',
                   onTap: () {},
                 ),
-                const Divider(color: Color(0xFF333333), height: 1),
+                Divider(color: theme.dividerTheme.color, height: 1),
                 _buildActionRow(
+                  context: context,
                   icon: Icons.calendar_today_outlined,
                   label: 'Add Due Date',
                   onTap: () {},
                 ),
-                const Divider(color: Color(0xFF333333), height: 1),
+                Divider(color: theme.dividerTheme.color, height: 1),
                 _buildActionRow(
+                  context: context,
                   icon: Icons.repeat,
                   label: 'Repeat',
                   onTap: () {},
                 ),
-                const Divider(color: Color(0xFF333333), height: 1),
+                Divider(color: theme.dividerTheme.color, height: 1),
                 _buildActionRow(
+                  context: context,
                   icon: Icons.person_outline,
                   label: 'Assign to',
                   onTap: () {},
                 ),
-                const Divider(color: Color(0xFF333333), height: 1),
+                Divider(color: theme.dividerTheme.color, height: 1),
                 _buildActionRow(
+                  context: context,
                   icon: Icons.attach_file,
                   label: 'Add File',
                   onTap: () {},
                 ),
-                const Divider(color: Color(0xFF333333), height: 1),
+                Divider(color: theme.dividerTheme.color, height: 1),
                 Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Text(
                     'Add Note',
-                    style: TextStyle(
-                      color: Colors.grey.shade400,
-                      fontSize: 15,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onBackground.withOpacity(0.7),
                     ),
                   ),
                 ),
@@ -153,16 +146,17 @@ class SingleTaskDetailPage extends StatelessWidget {
                     children: [
                       Text(
                         'Created ${_formatDate(task.reminderTime ?? todo.createdTime)} by ${task.assignedTo ?? 'Tapiwa Tererai'}',
-                        style: TextStyle(
-                          color: Colors.grey.shade500,
-                          fontSize: 13,
-                        ),
+                        style: theme.textTheme.bodySmall,
                       ),
                       const Spacer(),
-                      Icon(
-                        Icons.delete_outline,
-                        color: Colors.grey.shade500,
-                        size: 20,
+                      IconButton(
+                        icon: Icon(
+                          Icons.delete_outline,
+                          color:
+                              theme.colorScheme.onBackground.withOpacity(0.6),
+                          size: 20,
+                        ),
+                        onPressed: () {},
                       ),
                     ],
                   ),
@@ -171,10 +165,10 @@ class SingleTaskDetailPage extends StatelessWidget {
             ),
           );
         }
-        return const Scaffold(
-          backgroundColor: Color(0xFF1E1E1E),
+        return Scaffold(
+          backgroundColor: theme.colorScheme.background,
           body: Center(
-            child: CircularProgressIndicator(color: Colors.blue),
+            child: CircularProgressIndicator(color: theme.colorScheme.primary),
           ),
         );
       },
@@ -182,11 +176,14 @@ class SingleTaskDetailPage extends StatelessWidget {
   }
 
   Widget _buildActionRow({
+    required BuildContext context,
     required IconData icon,
     required String label,
     Color? color,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -195,15 +192,14 @@ class SingleTaskDetailPage extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: color ?? Colors.grey.shade400,
+              color: color ?? theme.colorScheme.onBackground.withOpacity(0.8),
               size: 22,
             ),
             const SizedBox(width: 15),
             Text(
               label,
-              style: TextStyle(
-                color: Colors.grey.shade300,
-                fontSize: 16,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onBackground.withOpacity(0.9),
               ),
             ),
           ],
