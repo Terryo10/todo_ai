@@ -15,6 +15,7 @@ class AiTodoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // This gradient background looks great, so we'll keep it and not use the theme
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -48,11 +49,9 @@ class AiTodoScreen extends StatelessWidget {
 class AiTodoCard extends StatefulWidget {
   const AiTodoCard({
     super.key,
-    this.color = const Color(0xFF2D2D2D),
     this.iconSrc = "assets/icons/ai_assistant.svg",
   });
 
-  final Color color;
   final String iconSrc;
 
   @override
@@ -167,6 +166,19 @@ class _AiTodoCardState extends State<AiTodoCard>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    // We'll keep the dark color scheme for the card since it looks great
+    final cardColor = const Color(0xFF2D2D2D);
+
+    // But we'll use the theme's primary color for accents and buttons
+    final accentColor = theme.colorScheme.primary;
+
+    // Always use white/light text for the dark card background
+    final textColor = Colors.white;
+    final textColorSecondary = Colors.grey.shade300;
+    final textColorHint = Colors.grey.shade500;
+
     return BlocListener<PromptGeneratorBloc, PromptGeneratorState>(
       listener: (context, state) {
         if (state is PromptLoadedState) {
@@ -176,9 +188,10 @@ class _AiTodoCardState extends State<AiTodoCard>
           });
         } else if (state is PromptErrorState) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to generate tasks. Please try again.'),
-              backgroundColor: Colors.red,
+            SnackBar(
+              content:
+                  const Text('Failed to generate tasks. Please try again.'),
+              backgroundColor: theme.colorScheme.error,
             ),
           );
           _toggleExpanded();
@@ -192,11 +205,11 @@ class _AiTodoCardState extends State<AiTodoCard>
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: const [
-                  Color(0xFF4776E6),
-                  Color(0xFF8E54E9),
-                  Color(0xFFFF4081),
-                  Color(0xFF4776E6),
+                colors: [
+                  accentColor.withOpacity(0.8),
+                  const Color(0xFF8E54E9),
+                  const Color(0xFFFF4081),
+                  accentColor.withOpacity(0.8),
                 ],
                 stops: [
                   0.0,
@@ -217,7 +230,7 @@ class _AiTodoCardState extends State<AiTodoCard>
                 maxHeight: MediaQuery.of(context).size.height * 0.7,
               ),
               decoration: BoxDecoration(
-                color: widget.color,
+                color: cardColor,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -227,10 +240,10 @@ class _AiTodoCardState extends State<AiTodoCard>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         "Task Whiz",
                         style: TextStyle(
-                          color: Colors.white,
+                          color: textColor,
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
@@ -242,8 +255,7 @@ class _AiTodoCardState extends State<AiTodoCard>
                         ),
                       if (_isExpanded)
                         IconButton(
-                          icon:
-                              const Icon(Icons.arrow_back, color: Colors.white),
+                          icon: Icon(Icons.arrow_back, color: textColor),
                           onPressed: _toggleExpanded,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
@@ -257,13 +269,13 @@ class _AiTodoCardState extends State<AiTodoCard>
                           return Text(
                             "Topic: ${state.topic}",
                             style: TextStyle(
-                              color: Colors.white,
+                              color: textColor,
                               fontSize: 10,
                               fontWeight: FontWeight.normal,
                             ),
                           );
                         }
-                        return SizedBox.shrink();
+                        return const SizedBox.shrink();
                       },
                     ),
                   const SizedBox(height: 5),
@@ -271,7 +283,7 @@ class _AiTodoCardState extends State<AiTodoCard>
                     Text(
                       _currentTypingText,
                       style: TextStyle(
-                        color: Colors.grey.shade300,
+                        color: textColorSecondary,
                         fontSize: 16,
                       ),
                     ),
@@ -281,19 +293,24 @@ class _AiTodoCardState extends State<AiTodoCard>
                         Expanded(
                           child: TextField(
                             controller: _promptController,
-                            style: const TextStyle(color: Colors.white),
+                            style: TextStyle(color: textColor),
                             decoration: InputDecoration(
                               hintText: "Type your request here...",
-                              hintStyle: TextStyle(color: Colors.grey.shade500),
+                              hintStyle: TextStyle(color: textColorHint),
+                              filled: true,
+                              fillColor: Colors.grey.shade800,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide:
-                                    BorderSide(color: Colors.grey.shade800),
+                                borderSide: BorderSide.none,
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide.none,
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
                                 borderSide:
-                                    BorderSide(color: Colors.grey.shade800),
+                                    BorderSide(color: accentColor, width: 1.5),
                               ),
                             ),
                           ),
@@ -302,12 +319,12 @@ class _AiTodoCardState extends State<AiTodoCard>
                         BlocBuilder<PromptGeneratorBloc, PromptGeneratorState>(
                           builder: (context, state) {
                             if (state is PromptLoadingState) {
-                              return ThinkingLoader();
+                              return const ThinkingLoader();
                             }
                             return IconButton(
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.send,
-                                color: Colors.white,
+                                color: textColor,
                               ),
                               onPressed: () =>
                                   _generateTodos(_promptController.text),
@@ -323,14 +340,15 @@ class _AiTodoCardState extends State<AiTodoCard>
                           PromptGeneratorState>(
                         builder: (context, state) {
                           if (state is PromptLoadingState) {
-                            return ThinkingLoader();
+                            return const ThinkingLoader();
                           }
 
                           if (_tasks.isEmpty) {
-                            return const Center(
+                            return Center(
                               child: Text(
                                 'No tasks generated yet',
-                                style: TextStyle(color: Colors.white70),
+                                style: TextStyle(
+                                    color: textColor.withOpacity(0.7)),
                               ),
                             );
                           }
@@ -340,8 +358,8 @@ class _AiTodoCardState extends State<AiTodoCard>
                               Expanded(
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: Colors.grey.shade900
-                                        .withValues(alpha: 0.3),
+                                    color:
+                                        Colors.grey.shade900.withOpacity(0.3),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Stack(
@@ -350,11 +368,10 @@ class _AiTodoCardState extends State<AiTodoCard>
                                         data: ScrollbarThemeData(
                                           thickness: WidgetStateProperty.all(8),
                                           thumbColor: WidgetStateProperty.all(
-                                              Colors.deepPurple
-                                                  .withValues(alpha: 0.6)),
+                                              accentColor.withOpacity(0.6)),
                                           trackColor: WidgetStateProperty.all(
                                               Colors.grey.shade800
-                                                  .withValues(alpha: 0.1)),
+                                                  .withOpacity(0.1)),
                                           radius: const Radius.circular(10),
                                           thumbVisibility:
                                               WidgetStateProperty.all(true),
@@ -370,7 +387,10 @@ class _AiTodoCardState extends State<AiTodoCard>
                                             child: Column(
                                               children: [
                                                 ..._tasks.map((task) =>
-                                                    _buildTaskItem(task)),
+                                                    _buildTaskItem(
+                                                        task,
+                                                        accentColor,
+                                                        textColor)),
                                                 if (_tasks.length > 3)
                                                   const SizedBox(height: 16),
                                               ],
@@ -390,9 +410,8 @@ class _AiTodoCardState extends State<AiTodoCard>
                                                 begin: Alignment.topCenter,
                                                 end: Alignment.bottomCenter,
                                                 colors: [
-                                                  widget.color
-                                                      .withValues(alpha: 0),
-                                                  widget.color,
+                                                  cardColor.withOpacity(0),
+                                                  cardColor,
                                                 ],
                                               ),
                                             ),
@@ -425,16 +444,17 @@ class _AiTodoCardState extends State<AiTodoCard>
                             ),
                             TextButton(
                               onPressed: _acceptAll,
-                              child: const Text(
+                              child: Text(
                                 "Accept all",
-                                style: TextStyle(color: Colors.white70),
+                                style: TextStyle(
+                                    color: accentColor.withOpacity(0.9)),
                               ),
                             ),
                           ],
                         ),
                         if (_tasks.any((task) => task.isAccepted)) ...[
                           const SizedBox(height: 8),
-                          _buildCreateTodoButton(),
+                          _buildCreateTodoButton(accentColor, textColor),
                         ],
                       ],
                     ),
@@ -448,18 +468,17 @@ class _AiTodoCardState extends State<AiTodoCard>
     );
   }
 
-  Widget _buildTaskItem(TodoItem task) {
+  Widget _buildTaskItem(TodoItem task, Color accentColor, Color textColor) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
-        color: task.isAccepted
-            ? Colors.green.withValues(alpha: 0.15)
-            : Colors.black12,
+        color:
+            task.isAccepted ? Colors.green.withOpacity(0.15) : Colors.black12,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: task.isAccepted
-              ? Colors.green.withValues(alpha: 0.3)
-              : Colors.grey.withValues(alpha: 0.1),
+              ? Colors.green.withOpacity(0.3)
+              : Colors.grey.withOpacity(0.1),
         ),
       ),
       child: Material(
@@ -475,8 +494,8 @@ class _AiTodoCardState extends State<AiTodoCard>
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                     color: task.isAccepted
-                        ? Colors.green.withValues(alpha: 0.2)
-                        : Colors.grey.shade800.withValues(alpha: 0.3),
+                        ? Colors.green.withOpacity(0.2)
+                        : Colors.grey.shade800.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: SvgPicture.asset(
@@ -494,9 +513,7 @@ class _AiTodoCardState extends State<AiTodoCard>
                   child: Text(
                     task.title,
                     style: TextStyle(
-                      color: task.isAccepted
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.9),
+                      color: textColor.withOpacity(task.isAccepted ? 1.0 : 0.9),
                       fontSize: 15,
                     ),
                   ),
@@ -532,7 +549,7 @@ class _AiTodoCardState extends State<AiTodoCard>
     );
   }
 
-  Widget _buildCreateTodoButton() {
+  Widget _buildCreateTodoButton(Color accentColor, Color textColor) {
     final acceptedTasks = _tasks.where((task) => task.isAccepted).toList();
 
     if (acceptedTasks.isEmpty) return const SizedBox.shrink();
@@ -541,7 +558,7 @@ class _AiTodoCardState extends State<AiTodoCard>
       margin: const EdgeInsets.only(top: 16),
       width: double.infinity,
       child: Material(
-        color: Colors.deepPurple,
+        color: accentColor,
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
@@ -606,8 +623,8 @@ class _AiTodoCardState extends State<AiTodoCard>
                 const SizedBox(width: 12),
                 Text(
                   'Create Todo with (${acceptedTasks.length} tasks)',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: textColor,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),

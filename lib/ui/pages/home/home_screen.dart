@@ -98,6 +98,13 @@ class _HomePageState extends State<HomePage> {
                         // Apply filter to todos
                         final filteredTodos = _filterTodos(state.todos);
 
+                        if (filteredTodos.isEmpty) {
+                          // Empty state
+                          return SliverToBoxAdapter(
+                            child: _buildEmptyState(context),
+                          );
+                        }
+
                         return SliverList(
                           delegate: SliverChildBuilderDelegate(
                             (context, index) {
@@ -150,6 +157,76 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildEmptyState(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(height: 12),
+          Icon(
+            Icons.assignment_outlined,
+            size: 100,
+            color: colorScheme.primary.withAlpha(179), // 0.7 opacity
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No todos found',
+            style: theme.textTheme.titleLarge!.copyWith(
+              color: colorScheme.onBackground,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _getEmptyStateMessage(),
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium!.copyWith(
+              color: colorScheme.onBackground.withAlpha(
+                  153), // 0.6 opacity converted to alpha (0.6 * 255 ≈ 153)
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => const CreateTodoDialog(),
+              );
+            },
+            icon: Icon(
+              Icons.add,
+              color: Colors.white, // Explicitly set icon color to white
+            ),
+            label: const Text('Create New Todo'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+              foregroundColor:
+                  Colors.white, // Explicitly set text color to white
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getEmptyStateMessage() {
+    switch (_selectedFilter) {
+      case 'Today':
+        return 'You don\'t have any tasks scheduled for today.\nTake a moment to plan your day.';
+      case 'Important':
+        return 'No important tasks found.\nMark tasks as important to see them here.';
+      case 'Completed':
+        return 'You haven\'t completed any tasks yet.\nKeep going, you\'re doing great!';
+      case 'All':
+      default:
+        return 'Your todo list is empty.\nTap the button below to add a new task.';
+    }
+  }
+
   Widget _buildHeader(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -172,8 +249,8 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 4),
               Text(
                 'You have ${recentCourses.length} tasks pending',
-                style: TextStyle(
-                    color: colorScheme.onBackground.withValues(alpha: 0.6)),
+                style:
+                    TextStyle(color: colorScheme.onBackground.withOpacity(0.6)),
               ),
             ],
           ),
@@ -196,7 +273,8 @@ class _HomePageState extends State<HomePage> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withValues(alpha: 0.1),
+                    color: colorScheme.primary.withAlpha(
+                        26), // 0.1 opacity converted to alpha (0.1 * 255 ≈ 26)
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -244,7 +322,8 @@ class _HomePageState extends State<HomePage> {
               backgroundColor: theme.brightness == Brightness.dark
                   ? colorScheme.surface
                   : Colors.grey[200],
-              selectedColor: colorScheme.primary.withValues(alpha: 0.2),
+              selectedColor: colorScheme.primary.withAlpha(
+                  51), // 0.2 opacity converted to alpha (0.2 * 255 ≈ 51)
               labelStyle: TextStyle(
                 color:
                     isSelected ? colorScheme.primary : colorScheme.onBackground,
@@ -318,7 +397,6 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// Add this extension for shadow utilities
 extension ColorExtension on Color {
   Color darken([double amount = .1]) {
     assert(amount >= 0 && amount <= 1);
