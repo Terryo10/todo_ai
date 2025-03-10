@@ -14,6 +14,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'repositories/auth_repository/auth_repository.dart';
 import 'repositories/cache_repository/cache_repository.dart';
 import 'repositories/todo_repository/todo_repository.dart';
+import 'services/invitation_service.dart';
+import 'services/notification_service.dart';
 
 class AppRepositories extends StatelessWidget {
   final Widget appBlocs;
@@ -59,7 +61,19 @@ class AppRepositories extends StatelessWidget {
             todoBox: todoBox,
             connectivity: Connectivity(),
           ),
-        )
+        ),
+         RepositoryProvider<InvitationService>(
+          create: (context) => InvitationService(
+            firestore: firestore,
+            auth: firebaseAuth,
+          ),
+        ),
+          RepositoryProvider<NotificationService>(
+          create: (context) => NotificationService(
+            firestore: firestore,
+            auth: firebaseAuth,
+          ),
+        ),
       ],
       child: appBlocs,
     );

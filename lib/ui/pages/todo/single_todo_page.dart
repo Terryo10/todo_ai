@@ -1,13 +1,20 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../domain/bloc/todo_bloc/todo_bloc.dart';
 import '../../../domain/model/todo_model.dart';
+import '../../../domain/services/invitation_service.dart';
 import '../../../routes/router.gr.dart';
+import '../../../static/app_colors.dart';
 import 'add_task_dialogue.dart';
 import 'edit_todo_dialogue.dart';
+import 'widgets/assignee_chip.dart';
+import 'widgets/collaborator_chip.dart';
+import 'widgets/share_todo_button.dart';
+import 'widgets/task_asignment.dart';
 
 @RoutePage()
 class SingleTodoPage extends StatefulWidget {
@@ -61,6 +68,11 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
               onPressed: () => Navigator.of(context).pop(),
             ),
             actions: [
+              // Add ShareTodoButton
+              ShareTodoButton(
+                  todoId: currentTodo.id,
+                  invitationService:
+                      RepositoryProvider.of<InvitationService>(context)),
               IconButton(
                 icon:
                     Icon(Icons.edit_outlined, color: theme.colorScheme.primary),
@@ -81,42 +93,40 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _buildTodoHeader(
+                      buildCompactHeader(
                           context, currentTodo, completionPercentage),
-                      const SizedBox(height: 24),
-
-                      // Task summary
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildSummaryCard(
-                            context,
-                            'Total',
-                            currentTodo.tasks.length.toString(),
-                            Icons.assignment,
-                            theme.colorScheme.primary.withOpacity(0.2),
-                            theme.colorScheme.primary,
-                          ),
-                          _buildSummaryCard(
-                            context,
-                            'Pending',
-                            pendingTasks.length.toString(),
-                            Icons.hourglass_empty,
-                            theme.colorScheme.tertiary.withOpacity(0.2),
-                            theme.colorScheme.tertiary,
-                          ),
-                          _buildSummaryCard(
-                            context,
-                            'Completed',
-                            completedTasks.length.toString(),
-                            Icons.check_circle_outline,
-                            theme.colorScheme.secondary.withOpacity(0.2),
-                            theme.colorScheme.secondary,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
+                      // Add collaborator list
                     ],
+                  ),
+                ),
+              ),
+
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: ElevatedButton.icon(
+                    onPressed: () =>
+                        _showCollaboratorsDialog(context, currentTodo),
+                    icon: const Icon(
+                      Icons.people,
+                      size: 18,
+                      color: Colors.white,
+                    ),
+                    label: const Text('View Collaborators'),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.primaryLight,
+                      elevation: 2,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -158,219 +168,11 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
           floatingActionButton: FloatingActionButton(
             backgroundColor: theme.colorScheme.primary,
             onPressed: () => _showAddTaskDialog(context, currentTodo),
-            child: Icon(Icons.add, color: theme.colorScheme.onPrimary),
             elevation: 4,
+            child: Icon(Icons.add, color: theme.colorScheme.onPrimary),
           ),
         );
       },
-    );
-  }
-
-  Widget _buildSummaryCard(
-    BuildContext context,
-    String title,
-    String count,
-    IconData icon,
-    Color backgroundColor,
-    Color iconColor,
-  ) {
-    final theme = Theme.of(context);
-
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            children: [
-              Icon(icon, color: iconColor, size: 24),
-              const SizedBox(height: 8),
-              Text(
-                count,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                title,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.7),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTodoHeader(
-      BuildContext context, Todo todo, double completionPercentage) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            theme.colorScheme.primary.withOpacity(0.8),
-            theme.colorScheme.primary.withOpacity(0.6),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.primary.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  todo.name,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onPrimary,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
-                ),
-              ),
-              Checkbox(
-                value: todo.isCompleted,
-                activeColor: Colors.white,
-                checkColor: theme.colorScheme.primary,
-                side: BorderSide(color: Colors.white, width: 2),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                onChanged: (value) {
-                  if (value != null) {
-                    context.read<TodoBloc>().add(UpdateTodo(
-                          todo: todo.copyWith(isCompleted: value),
-                        ));
-                  }
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Progress indicator
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Progress',
-                    style: TextStyle(
-                      color: theme.colorScheme.onPrimary.withOpacity(0.9),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Text(
-                    '${completionPercentage.toInt()}%',
-                    style: TextStyle(
-                      color: theme.colorScheme.onPrimary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: LinearProgressIndicator(
-                  value: completionPercentage / 100,
-                  backgroundColor: theme.colorScheme.onPrimary.withOpacity(0.3),
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    theme.colorScheme.onPrimary,
-                  ),
-                  minHeight: 10,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-          Divider(color: theme.colorScheme.onPrimary.withOpacity(0.2)),
-          const SizedBox(height: 8),
-
-          // Todo info
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildInfoItem(
-                Icons.calendar_today,
-                'Created',
-                DateFormat.yMMMd().format(todo.createdTime),
-                theme.colorScheme.onPrimary,
-              ),
-              _buildInfoItem(
-                Icons.people,
-                'Team',
-                '${todo.collaborators.length} Members',
-                theme.colorScheme.onPrimary,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoItem(
-    IconData icon,
-    String label,
-    String value,
-    Color color,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(
-              icon,
-              color: color.withOpacity(0.7),
-              size: 16,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                color: color.withOpacity(0.7),
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            color: color,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
     );
   }
 
@@ -457,6 +259,9 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
 
   Widget _buildTaskItem(BuildContext context, Todo todo, Task task) {
     final theme = Theme.of(context);
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    final canManageTasks =
+        currentUserId == todo.uid || todo.collaborators.contains(currentUserId);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -523,21 +328,30 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (task.assignedTo != null) ...[
+                // Replace the existing assignedTo text with AssigneeChip
+                if (task.assignedTo != null || canManageTasks) ...[
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(
-                        Icons.person_outline,
-                        size: 14,
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Assigned to: ${task.assignedTo!}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface.withOpacity(0.6),
-                        ),
+                      AssigneeChip(
+                        assigneeId: task.assignedTo,
+                        showUnassigned: canManageTasks,
+                        onTap: canManageTasks
+                            ? () {
+                                // Show assignment dialog
+                                showTaskAssignmentDialog(
+                                  context,
+                                  todoId: todo.id,
+                                  taskId: task.id,
+                                  taskName: task.name,
+                                  currentAssignee: task.assignedTo,
+                                  collaborators: [
+                                    ...todo.collaborators,
+                                    todo.uid
+                                  ],
+                                );
+                              }
+                            : null,
                       ),
                     ],
                   ),
@@ -577,6 +391,61 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
                     ),
                   )
                 : null,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showCollaboratorsDialog(BuildContext context, Todo todo) async {
+    await showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          width: double.infinity,
+          constraints: const BoxConstraints(maxHeight: 500),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Collaborators',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: CollaboratorList(
+                    todoId: todo.id,
+                    ownerUid: todo.uid,
+                    collaborators: todo.collaborators,
+                    canManage:
+                        todo.uid == FirebaseAuth.instance.currentUser?.uid,
+                    onCollaboratorsChanged: () {
+                      // Refresh the todo data if needed
+                      context.read<TodoBloc>().add(LoadTodos());
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -657,5 +526,224 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
       context.read<TodoBloc>().add(DeleteTodo(todoId: todo.id));
       Navigator.of(context).pop(); // Close the SingleTodoPage
     }
+  }
+
+  Widget buildCompactHeader(
+      BuildContext context, Todo todo, double completionPercentage) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            theme.colorScheme.primary.withOpacity(0.8),
+            theme.colorScheme.primary.withOpacity(0.6),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.primary.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title and checkbox row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  todo.name,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onPrimary,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Checkbox(
+                value: todo.isCompleted,
+                activeColor: Colors.white,
+                checkColor: theme.colorScheme.primary,
+                side: BorderSide(color: Colors.white, width: 2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                onChanged: (value) {
+                  if (value != null) {
+                    context.read<TodoBloc>().add(UpdateTodo(
+                          todo: todo.copyWith(isCompleted: value),
+                        ));
+                  }
+                },
+              ),
+            ],
+          ),
+
+          // Progress bar
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Text(
+                'Progress: ${completionPercentage.toInt()}%',
+                style: TextStyle(
+                  color: theme.colorScheme.onPrimary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: completionPercentage / 100,
+              backgroundColor: theme.colorScheme.onPrimary.withOpacity(0.3),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                theme.colorScheme.onPrimary,
+              ),
+              minHeight: 6,
+            ),
+          ),
+
+          // Stats row
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              // Created date chip
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.onPrimary.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.calendar_today,
+                      size: 12,
+                      color: theme.colorScheme.onPrimary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      DateFormat.yMMMd().format(todo.createdTime),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: theme.colorScheme.onPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Total tasks chip
+              _buildStatusChip(
+                context,
+                'Total: ${todo.tasks.length}',
+                Icons.assignment,
+                theme.colorScheme.onPrimary.withOpacity(0.2),
+                theme.colorScheme.onPrimary,
+              ),
+
+              // Pending tasks chip
+              _buildStatusChip(
+                context,
+                'Pending: ${todo.tasks.where((t) => !t.isCompleted).length}',
+                Icons.hourglass_empty,
+                theme.colorScheme.onPrimary.withOpacity(0.2),
+                theme.colorScheme.onPrimary,
+              ),
+
+              // Completed tasks chip
+              _buildStatusChip(
+                context,
+                'Done: ${todo.tasks.where((t) => t.isCompleted).length}',
+                Icons.check_circle_outline,
+                theme.colorScheme.onPrimary.withOpacity(0.2),
+                theme.colorScheme.onPrimary,
+              ),
+
+              // Collaborators button
+              InkWell(
+                onTap: () => _showCollaboratorsDialog(context, todo),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.people,
+                        size: 12,
+                        color: Colors.amber,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${todo.collaborators.length} Members',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: Colors.amber,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusChip(
+    BuildContext context,
+    String title,
+    IconData icon,
+    Color backgroundColor,
+    Color foregroundColor,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 12,
+            color: foregroundColor,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 10,
+              color: foregroundColor,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

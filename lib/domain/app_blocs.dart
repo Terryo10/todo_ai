@@ -15,6 +15,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'bloc/auth_bloc/auth_bloc.dart';
 import 'bloc/cache_bloc/cache_bloc.dart';
+import 'services/notification_service.dart';
 
 class AppBlocs extends StatelessWidget {
   final Widget app;
@@ -53,6 +54,7 @@ class AppBlocs extends StatelessWidget {
           create: (context) => TodoBloc(
             repository: RepositoryProvider.of<TodoRepository>(context),
             authBloc: BlocProvider.of<AuthBloc>(context),
+            notificationService: RepositoryProvider.of<NotificationService>(context)
           )..add(LoadTodos()),
         ),
         BlocProvider(

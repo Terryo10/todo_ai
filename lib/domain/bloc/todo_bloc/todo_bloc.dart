@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../model/todo_model.dart';
 import '../../repositories/todo_repository/todo_repository.dart';
+import '../../services/notification_service.dart';
 
 part 'todo_event.dart';
 part 'todo_state.dart';
@@ -19,10 +20,12 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
   StreamSubscription? _connectivitySubscription;
   StreamSubscription? _authSubscription;
   String? _currentUserId;
+  final NotificationService? notificationService; 
 
   TodoBloc({
     required TodoRepository repository,
     required AuthBloc authBloc,
+    this.notificationService
   })  : _repository = repository,
         _authBloc = authBloc,
         super(TodoInitial()) {
@@ -128,6 +131,9 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       }
     });
 
+    on<AssignTask>(_onAssignTask);
+    on<CompleteTask>(_onCompleteTask);
+
     on<ArchiveCompletedTodos>((event, emit) async {
       if (state is TodoLoaded) {
         final todos = (state as TodoLoaded).todos;
@@ -149,6 +155,8 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     });
 
     _setupTodosSubscription();
+
+
   }
 
   void _setupTodosSubscription() {
@@ -291,6 +299,141 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       }
     } catch (e) {
       emit(TodoError(message: 'Failed to delete task: $e'));
+    }
+  }
+
+  Future<void> _onAssignTask(AssignTask event, Emitter<TodoState> emit) async {
+    try {
+      final currentState = state;
+      if (currentState is TodoLoaded) {
+        final todos = List<Todo>.from(currentState.todos);
+        final todoIndex = todos.indexWhere((todo) => todo.id == event.todoId);
+        
+        if (todoIndex >= 0) {
+          final todo = todos[todoIndex];
+          final tasks = List<Task>.from(todo.tasks);
+          final taskIndex = tasks.indexWhere((task) => task.id == event.taskId);
+          
+          if (taskIndex >= 0) {
+            // Update the task with the assigned user
+            final updatedTask = tasks[taskIndex].copyWith(
+              assignedTo: event.userId,
+            );
+            
+            tasks[taskIndex] = updatedTask;
+            
+            // Update the todo with the new tasks list
+            final updatedTodo = todo.copyWith(
+              tasks: tasks,
+            );
+            
+            todos[todoIndex] = updatedTodo;
+            
+            // Update in repository
+            await _repository.updateTodo(updatedTodo);
+            
+            // Emit new state
+            emit(TodoLoaded(todos: todos));
+            
+            // Send notification if notification service is available
+            if (notificationService != null && event.userId != null) {
+              final currentUser = _authBloc.state is AuthAuthenticatedState 
+                  ? (_authBloc.state as AuthAuthenticatedState)
+                  : null;
+                  
+              if (currentUser != null) {
+                final assignerName = currentUser.displayName;
+                
+                notificationService!.sendNotificationToUser(
+                  userId: event.userId!,
+                  title: 'New Task Assigned',
+                  body: '$assignerName assigned you to "${updatedTask.name}" in ${todo.name}',
+                  data: {
+                    'type': 'task_assigned',
+                    'todoId': event.todoId,
+                    'taskId': event.taskId,
+                  },
+                );
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      emit(TodoError(message: 'Failed to assign task: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onCompleteTask(CompleteTask event, Emitter<TodoState> emit) async {
+    try {
+      final currentState = state;
+      if (currentState is TodoLoaded) {
+        final todos = List<Todo>.from(currentState.todos);
+        final todoIndex = todos.indexWhere((todo) => todo.id == event.todoId);
+        
+        if (todoIndex >= 0) {
+          final todo = todos[todoIndex];
+          final tasks = List<Task>.from(todo.tasks);
+          final taskIndex = tasks.indexWhere((task) => task.id == event.taskId);
+          
+          if (taskIndex >= 0) {
+            // Update the task completion status
+            final updatedTask = tasks[taskIndex].copyWith(
+              isCompleted: event.isCompleted,
+            );
+            
+            tasks[taskIndex] = updatedTask;
+            
+            // Check if all tasks are completed
+            final allTasksCompleted = tasks.every((task) => task.isCompleted);
+            
+            // Update the todo with the new tasks list and completion status
+            final updatedTodo = todo.copyWith(
+              tasks: tasks,
+              isCompleted: allTasksCompleted,
+            );
+            
+            todos[todoIndex] = updatedTodo;
+            
+            // Update in repository
+            await _repository.updateTodo(updatedTodo);
+            
+            // Emit new state
+            emit(TodoLoaded(todos: todos));
+            
+            // If the task was marked as completed and notification service is available
+            if (notificationService != null && event.isCompleted) {
+              final currentUser = _authBloc.state is AuthAuthenticatedState 
+                  ? (_authBloc.state as AuthAuthenticatedState)
+                  : null;
+                  
+              if (currentUser != null) {
+                final completerName = currentUser.displayName;
+                
+                // Notify all collaborators except the one who completed it
+                final collaborators = [...todo.collaborators, todo.uid]
+                    .where((uid) => uid != currentUser.userId)
+                    .toList();
+                
+                for (final userId in collaborators) {
+                  notificationService!.sendNotificationToUser(
+                    userId: userId,
+                    title: 'Task Completed',
+                    body: '$completerName completed "${updatedTask.name}" in ${todo.name}',
+                    data: {
+                      'type': 'task_completed',
+                      'todoId': event.todoId,
+                      'taskId': event.taskId,
+                    },
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      emit(TodoError(message: 'Failed to complete task: ${e.toString()}'));
     }
   }
 }

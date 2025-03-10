@@ -89,3 +89,33 @@ class ClearTodos extends TodoEvent {
 class SortTodosByDate extends TodoEvent {}
 class SortTodosByPriority extends TodoEvent {}
 class ArchiveCompletedTodos extends TodoEvent {}
+
+class AssignTask extends TodoEvent {
+  final String todoId;
+  final String taskId;
+  final String? userId; // Null means unassign
+
+  const AssignTask({
+    required this.todoId,
+    required this.taskId,
+    this.userId,
+  });
+
+  @override
+  List<Object?> get props => [todoId, taskId, userId];
+}
+
+class CompleteTask extends TodoEvent {
+  final String todoId;
+  final String taskId;
+  final bool isCompleted;
+
+  const CompleteTask({
+    required this.todoId,
+    required this.taskId,
+    required this.isCompleted,
+  });
+
+  @override
+  List<Object> get props => [todoId, taskId, isCompleted];
+}

@@ -30,9 +30,9 @@ class TodoRepository {
 
   // Stream of todos from local storage for a specific user
   Stream<List<Todo>> watchUserTodos(String uid) {
-    return _todoBox.watch().map((_) => 
-      _todoBox.values.where((todo) => todo.uid == uid).toList()
-    );
+    return _todoBox
+        .watch()
+        .map((_) => _todoBox.values.where((todo) => todo.uid == uid).toList());
   }
 
   // Get todos from local storage for a specific user
@@ -91,14 +91,15 @@ class TodoRepository {
           .collection('todos')
           .where('uid', isEqualTo: uid)
           .get();
-      
+
       final firebaseTodosMap = {
         for (var doc in firebaseTodos.docs)
           doc.id: Todo.fromMap({...doc.data(), 'id': doc.id})
       };
 
       // Get all local todos for the user
-      final localTodos = _todoBox.values.where((todo) => todo.uid == uid).toList();
+      final localTodos =
+          _todoBox.values.where((todo) => todo.uid == uid).toList();
       final localTodosMap = {for (var todo in localTodos) todo.id: todo};
 
       // Sync Firebase to local
@@ -126,6 +127,80 @@ class TodoRepository {
     }
   }
 
+  Future<List<Todo>> getCollaborativeTodos(String uid) async {
+    if (!await _isOnline()) {
+      // Return local todos where the user is a collaborator
+      return _todoBox.values
+          .where((todo) => todo.collaborators.contains(uid))
+          .toList();
+    }
+
+    try {
+      // Get todos from Firebase where user is a collaborator
+      final querySnapshot = await _firestore
+          .collection('todos')
+          .where('collaborators', arrayContains: uid)
+          .get();
+
+      // Convert to Todo objects and add to local storage
+      final todos = <Todo>[];
+      for (final doc in querySnapshot.docs) {
+        final todo = Todo.fromMap({...doc.data(), 'id': doc.id});
+        todos.add(todo);
+
+        // Update local storage
+        await _todoBox.put(todo.id, todo);
+      }
+
+      return todos;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting collaborative todos: $e');
+      }
+      // Fall back to local storage
+      return _todoBox.values
+          .where((todo) => todo.collaborators.contains(uid))
+          .toList();
+    }
+  }
+
+// Get all todos for a user (both owned and collaborative)
+  Future<List<Todo>> getAllUserTodos(String uid) async {
+    // Get owned todos
+    final ownedTodos = getLocalUserTodos(uid);
+
+    // Get todos where user is a collaborator
+    final collaborativeTodos = await getCollaborativeTodos(uid);
+
+    // Combine and return
+    return [...ownedTodos, ...collaborativeTodos];
+  }
+
+// Stream of all todos (owned and collaborative)
+  Stream<List<Todo>> watchAllUserTodos(String uid) {
+    // First, sync with Firebase if possible
+    syncWithFirebase(uid);
+
+    // Get collaborative todos
+    getCollaborativeTodos(uid);
+
+    // Return a stream that combines both owned and collaborative todos
+    return _todoBox.watch().map((_) {
+      final ownedTodos = _todoBox.values.where((todo) => todo.uid == uid);
+      final collabTodos =
+          _todoBox.values.where((todo) => todo.collaborators.contains(uid));
+      return [...ownedTodos, ...collabTodos].toList();
+    });
+  }
+
+  Future<void> updateTodo(Todo todo) async {
+    // Save locally first
+    await _todoBox.put(todo.id, todo);
+
+    // Then sync to Firebase if online
+    await _syncToFirebase(todo);
+  }
+
   bool _isFirebaseTodoNewer(Todo firebaseTodo, Todo localTodo) {
     return firebaseTodo.createdTime.isAfter(localTodo.createdTime);
   }
@@ -139,6 +214,7 @@ class TodoRepository {
     return _connectivity.onConnectivityChanged;
   }
 }
+
 @HiveType(typeId: 0)
 class TodoAdapter extends TypeAdapter<Todo> {
   @override
@@ -195,8 +271,8 @@ class TaskAdapter extends TypeAdapter<Task> {
         todoId: reader.readString(), // Add todoId
         name: reader.readString(),
         assignedTo: reader.readString(),
-        reminderTime: reader.readInt() == 0 
-            ? null 
+        reminderTime: reader.readInt() == 0
+            ? null
             : DateTime.fromMillisecondsSinceEpoch(reader.readInt()),
         isImportant: reader.readBool(),
         isCompleted: reader.readBool(),
