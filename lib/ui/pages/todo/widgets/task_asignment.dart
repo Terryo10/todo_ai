@@ -63,13 +63,16 @@ class _TaskAssignmentDialogState extends State<TaskAssignmentDialog> {
           continue;
         }
 
-        final userDoc = await _firestore.collection('users').doc(collaboratorId).get();
+        final userDoc =
+            await _firestore.collection('users').doc(collaboratorId).get();
         if (userDoc.exists) {
           final userData = userDoc.data();
           if (userData != null) {
             _collaboratorDetails.add({
               'id': collaboratorId,
-              'name': userData['displayName'] ?? userData['email'] ?? 'Unknown User',
+              'name': userData['displayName'] ??
+                  userData['email'] ??
+                  'Unknown User',
               'email': userData['email'] ?? '',
               'photoUrl': userData['photoURL'],
               'isCurrentUser': false,
@@ -89,7 +92,8 @@ class _TaskAssignmentDialogState extends State<TaskAssignmentDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Assign Task: ${widget.taskName}'),
+      title: Text('Assign Task: ${widget.taskName}',
+          style: TextStyle(fontSize: 16)),
       content: _isLoading
           ? const SizedBox(
               height: 100,
@@ -142,7 +146,10 @@ class _TaskAssignmentDialogState extends State<TaskAssignmentDialog> {
                           });
                         },
                         secondary: CircleAvatar(
-                          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                          backgroundColor: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.1),
                           backgroundImage: collaborator['photoUrl'] != null
                               ? NetworkImage(collaborator['photoUrl'])
                               : null,
@@ -150,7 +157,8 @@ class _TaskAssignmentDialogState extends State<TaskAssignmentDialog> {
                               ? Text(
                                   collaborator['name'][0].toUpperCase(),
                                   style: TextStyle(
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                   ),
                                 )
                               : null,

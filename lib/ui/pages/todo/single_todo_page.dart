@@ -12,7 +12,7 @@ import '../../../static/app_colors.dart';
 import 'add_task_dialogue.dart';
 import 'edit_todo_dialogue.dart';
 import 'widgets/assignee_chip.dart';
-import 'widgets/collaborator_chip.dart';
+import 'widgets/collaborators_dialogue.dart';
 import 'widgets/share_todo_button.dart';
 import 'widgets/task_asignment.dart';
 
@@ -106,7 +106,7 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   child: ElevatedButton.icon(
                     onPressed: () =>
-                        _showCollaboratorsDialog(context, currentTodo),
+                        showCollaboratorsDialog(context, currentTodo),
                     icon: const Icon(
                       Icons.people,
                       size: 18,
@@ -397,60 +397,6 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
     );
   }
 
-  Future<void> _showCollaboratorsDialog(BuildContext context, Todo todo) async {
-    await showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Container(
-          width: double.infinity,
-          constraints: const BoxConstraints(maxHeight: 500),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Collaborators',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1),
-              Flexible(
-                child: SingleChildScrollView(
-                  child: CollaboratorList(
-                    todoId: todo.id,
-                    ownerUid: todo.uid,
-                    collaborators: todo.collaborators,
-                    canManage:
-                        todo.uid == FirebaseAuth.instance.currentUser?.uid,
-                    onCollaboratorsChanged: () {
-                      // Refresh the todo data if needed
-                      context.read<TodoBloc>().add(LoadTodos());
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Future<void> _showAddTaskDialog(BuildContext context, Todo todo) async {
     final task = await showDialog<Task>(
@@ -677,7 +623,7 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
 
               // Collaborators button
               InkWell(
-                onTap: () => _showCollaboratorsDialog(context, todo),
+                onTap: () => showCollaboratorsDialog(context, todo),
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
                   padding:

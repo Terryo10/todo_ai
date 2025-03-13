@@ -26,7 +26,7 @@ class TodoProvider {
         'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent',
     this.maxRetries = 3,
     this.retryDelay = const Duration(seconds: 2),
-    this.temperature = 0.7, // Adjust for more consistent outputs
+    this.temperature = 0.7,
   });
 
   Future<List<String>> getTasksFromGemini({required String prompt}) async {
@@ -282,16 +282,15 @@ Example format:
         // Clean up the title response
         String title = output
             .trim()
-            .replaceAll('"', '') // Remove quotes
-            .replaceAll('Title:', '') // Remove "Title:" prefix if present
+            .replaceAll('"', '')
+            .replaceAll('Title:', '') 
             .trim();
 
-        // If empty or too long, generate a fallback
         if (title.isEmpty || title.length > 50) {
           title =
               "Todo: ${prompt.length > 20 ? '${prompt.substring(0, 20)}...' : prompt}";
         }
-
+        lastException;
         return title;
       } catch (e) {
         lastException = e is Exception ? e : Exception(e.toString());
