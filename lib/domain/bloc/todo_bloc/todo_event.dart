@@ -119,3 +119,66 @@ class CompleteTask extends TodoEvent {
   @override
   List<Object> get props => [todoId, taskId, isCompleted];
 }
+
+class AddTaskStep extends TodoEvent {
+  final String todoId;
+  final String taskId;
+  final String stepDescription;
+
+  const AddTaskStep({
+    required this.todoId,
+    required this.taskId,
+    required this.stepDescription,
+  });
+
+  @override
+  List<Object> get props => [todoId, taskId, stepDescription];
+}
+
+class CompleteTaskStep extends TodoEvent {
+  final String todoId;
+  final String taskId;
+  final String stepId;
+  final bool isCompleted;
+
+  const CompleteTaskStep({
+    required this.todoId,
+    required this.taskId,
+    required this.stepId,
+    required this.isCompleted,
+  });
+
+  @override
+  List<Object> get props => [todoId, taskId, stepId, isCompleted];
+}
+
+class UpdateTaskImportance extends TodoEvent {
+  final String todoId;
+  final String taskId;
+  final bool isImportant;
+
+  const UpdateTaskImportance({
+    required this.todoId,
+    required this.taskId,
+    required this.isImportant,
+  });
+
+  @override
+  List<Object> get props => [todoId, taskId, isImportant];
+}
+
+class DeleteTaskStep extends TodoEvent {
+  final String todoId;
+  final String taskId;
+  final String stepId;
+
+  const DeleteTaskStep({
+    required this.todoId,
+    required this.taskId,
+    required this.stepId,
+  });
+
+  @override
+  List<Object> get props => [todoId, taskId, stepId];
+}
+

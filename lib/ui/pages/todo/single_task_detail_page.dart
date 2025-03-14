@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:todo_ai/domain/bloc/todo_bloc/todo_bloc.dart';
+import 'package:todo_ai/domain/model/todo_model.dart';
 
 import 'widgets/assignee_chip.dart';
 import 'widgets/task_asignment.dart';
@@ -49,14 +50,15 @@ class SingleTaskDetailPage extends StatelessWidget {
                     task.isImportant ? Icons.star : Icons.star_border,
                     color: task.isImportant
                         ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurface.withOpacity(0.7),
+                        : theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     size: 24,
                   ),
                   onPressed: () {
-                    // Toggle isImportant state
-                    // context.read<TodoBloc>().add(
-                    //   UpdateTaskImportance(todoId: todoId, taskId: taskId, isImportant: !task.isImportant)
-                    // );
+                    final updatedTask =
+                        task.copyWith(isImportant: !task.isImportant);
+                    context
+                        .read<TodoBloc>()
+                        .add(UpdateTask(todoId: todoId, task: updatedTask));
                   },
                   padding: const EdgeInsets.all(8),
                 ),
@@ -71,10 +73,13 @@ class SingleTaskDetailPage extends StatelessWidget {
                 SliverToBoxAdapter(
                   child: Divider(
                     color: theme.dividerTheme.color ??
-                        theme.colorScheme.onSurface.withOpacity(0.1),
+                        theme.colorScheme.onSurface.withValues(alpha: 0.1),
                     height: 24,
                     thickness: 1,
                   ),
+                ),
+                SliverToBoxAdapter(
+                  child: _buildStepsList(context, theme, task),
                 ),
                 SliverList(
                   delegate: SliverChildListDelegate([
@@ -84,24 +89,24 @@ class SingleTaskDetailPage extends StatelessWidget {
                       label: 'Add Step',
                       color: theme.colorScheme.primary,
                       onTap: () {
-                        // Add step logic
+                        _showAddStepDialog(context, todoId, taskId);
                       },
                     ),
+                    // Divider(
+                    //     color: theme.dividerTheme.color ??
+                    //         theme.colorScheme.onSurface.withValues(alpha: 0.1),
+                    //     height: 1),
+                    // _buildActionRow(
+                    //   context: context,
+                    //   icon: Icons.wb_sunny_outlined,
+                    //   label: 'Add to My Day',
+                    //   onTap: () {
+                    //     // Add to my day logic
+                    //   },
+                    // ),
                     Divider(
                         color: theme.dividerTheme.color ??
-                            theme.colorScheme.onSurface.withOpacity(0.1),
-                        height: 1),
-                    _buildActionRow(
-                      context: context,
-                      icon: Icons.wb_sunny_outlined,
-                      label: 'Add to My Day',
-                      onTap: () {
-                        // Add to my day logic
-                      },
-                    ),
-                    Divider(
-                        color: theme.dividerTheme.color ??
-                            theme.colorScheme.onSurface.withOpacity(0.1),
+                            theme.colorScheme.onSurface.withValues(alpha: 0.1),
                         height: 1),
                     _buildActionRow(
                       context: context,
@@ -112,36 +117,36 @@ class SingleTaskDetailPage extends StatelessWidget {
                               context, task.reminderTime!, theme)
                           : null,
                       onTap: () {
-                        // Reminder logic
+                        _showReminderPicker(context, todoId, task);
                       },
                     ),
+                    // Divider(
+                    //     color: theme.dividerTheme.color ??
+                    //         theme.colorScheme.onSurface.withValues(alpha: 0.1),
+                    //     height: 1),
+                    // _buildActionRow(
+                    //   context: context,
+                    //   icon: Icons.calendar_today_outlined,
+                    //   label: 'Add Due Date',
+                    //   onTap: () {
+                    //     // Due date logic
+                    //   },
+                    // ),
+                    // Divider(
+                    //     color: theme.dividerTheme.color ??
+                    //         theme.colorScheme.onSurface.withValues(alpha: 0.1),
+                    //     height: 1),
+                    // _buildActionRow(
+                    //   context: context,
+                    //   icon: Icons.repeat,
+                    //   label: 'Repeat',
+                    //   onTap: () {
+                    //     // Repeat logic
+                    //   },
+                    // ),
                     Divider(
                         color: theme.dividerTheme.color ??
-                            theme.colorScheme.onSurface.withOpacity(0.1),
-                        height: 1),
-                    _buildActionRow(
-                      context: context,
-                      icon: Icons.calendar_today_outlined,
-                      label: 'Add Due Date',
-                      onTap: () {
-                        // Due date logic
-                      },
-                    ),
-                    Divider(
-                        color: theme.dividerTheme.color ??
-                            theme.colorScheme.onSurface.withOpacity(0.1),
-                        height: 1),
-                    _buildActionRow(
-                      context: context,
-                      icon: Icons.repeat,
-                      label: 'Repeat',
-                      onTap: () {
-                        // Repeat logic
-                      },
-                    ),
-                    Divider(
-                        color: theme.dividerTheme.color ??
-                            theme.colorScheme.onSurface.withOpacity(0.1),
+                            theme.colorScheme.onSurface.withValues(alpha: 0.1),
                         height: 1),
                     _buildActionRow(
                       context: context,
@@ -172,23 +177,23 @@ class SingleTaskDetailPage extends StatelessWidget {
                         );
                       },
                     ),
-                    Divider(
-                        color: theme.dividerTheme.color ??
-                            theme.colorScheme.onSurface.withOpacity(0.1),
-                        height: 1),
-                    _buildActionRow(
-                      context: context,
-                      icon: Icons.attach_file,
-                      label: 'Add File',
-                      onTap: () {
-                        // Add file logic
-                      },
-                    ),
-                    Divider(
-                        color: theme.dividerTheme.color ??
-                            theme.colorScheme.onSurface.withOpacity(0.1),
-                        height: 1),
-                    _buildNoteSection(context, theme),
+                    // Divider(
+                    //     color: theme.dividerTheme.color ??
+                    //         theme.colorScheme.onSurface.withValues(alpha: 0.1),
+                    //     height: 1),
+                    // _buildActionRow(
+                    //   context: context,
+                    //   icon: Icons.attach_file,
+                    //   label: 'Add File',
+                    //   onTap: () {
+                    //     // Add file logic
+                    //   },
+                    // ),
+                    // Divider(
+                    //     color: theme.dividerTheme.color ??
+                    //         theme.colorScheme.onSurface.withValues(alpha: 0.1),
+                    //     height: 1),
+                    // _buildNoteSection(context, theme),
                   ]),
                 ),
                 // Add spacing at the bottom
@@ -218,10 +223,10 @@ class SingleTaskDetailPage extends StatelessWidget {
         children: [
           InkWell(
             onTap: () {
-              // Toggle completion status
-              // context.read<TodoBloc>().add(
-              //   UpdateTaskCompletion(todoId: todoId, taskId: taskId, isCompleted: !task.isCompleted)
-              // );
+              context.read<TodoBloc>().add(CompleteTask(
+                  todoId: todoId,
+                  taskId: taskId,
+                  isCompleted: !task.isCompleted));
             },
             borderRadius: BorderRadius.circular(20),
             child: Container(
@@ -248,7 +253,7 @@ class SingleTaskDetailPage extends StatelessWidget {
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
                 color: task.isCompleted
-                    ? theme.colorScheme.onSurface.withOpacity(0.6)
+                    ? theme.colorScheme.onSurface.withValues(alpha: 0.6)
                     : theme.colorScheme.onSurface,
                 decoration: task.isCompleted
                     ? TextDecoration.lineThrough
@@ -279,7 +284,8 @@ class SingleTaskDetailPage extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: color ?? theme.colorScheme.onSurface.withOpacity(0.7),
+              color:
+                  color ?? theme.colorScheme.onSurface.withValues(alpha: 0.7),
               size: 22,
             ),
             const SizedBox(width: 16),
@@ -287,7 +293,8 @@ class SingleTaskDetailPage extends StatelessWidget {
               child: Text(
                 label,
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: color ?? theme.colorScheme.onSurface.withOpacity(0.9),
+                  color: color ??
+                      theme.colorScheme.onSurface.withValues(alpha: 0.9),
                 ),
               ),
             ),
@@ -303,7 +310,7 @@ class SingleTaskDetailPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer.withOpacity(0.6),
+        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Text(
@@ -312,6 +319,35 @@ class SingleTaskDetailPage extends StatelessWidget {
           color: theme.colorScheme.onPrimaryContainer,
           fontWeight: FontWeight.w500,
         ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(
+      BuildContext context, String todoId, String taskId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Task'),
+        content: const Text('Are you sure you want to delete this task?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              context
+                  .read<TodoBloc>()
+                  .add(DeleteTask(todoId: todoId, taskId: taskId));
+              Navigator.pop(context);
+              Navigator.pop(context); // Return to previous screen
+            },
+            style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error),
+            child: const Text('Delete'),
+          ),
+        ],
       ),
     );
   }
@@ -331,13 +367,13 @@ class SingleTaskDetailPage extends StatelessWidget {
             color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: theme.colorScheme.onSurface.withOpacity(0.1),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
             ),
           ),
           child: Text(
             'Add Note',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.7),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
         ),
@@ -357,25 +393,86 @@ class SingleTaskDetailPage extends StatelessWidget {
               child: Text(
                 'Created ${_formatDate(task.reminderTime ?? todo.createdTime)}',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
               ),
             ),
             IconButton(
               icon: Icon(
                 Icons.delete_outline,
-                color: theme.colorScheme.error.withOpacity(0.8),
+                color: theme.colorScheme.error.withValues(alpha: 0.8),
                 size: 22,
               ),
               onPressed: () {
-                // Delete task logic
-                // showDialog(...)
+                _showDeleteConfirmation(context, todoId, taskId);
               },
             ),
           ],
         ),
       ),
     );
+  }
+
+  void _showAddStepDialog(BuildContext context, String todoId, String taskId) {
+    final textController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add Step'),
+        content: TextField(
+          controller: textController,
+          decoration: const InputDecoration(hintText: 'Enter step description'),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (textController.text.isNotEmpty) {
+                // Add step logic here using a new "AddTaskStep" event
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showReminderPicker(BuildContext context, String todoId, Task task) {
+    showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    ).then((selectedDate) {
+      if (selectedDate != null) {
+        showTimePicker(
+          context: context,
+          initialTime: TimeOfDay.now(),
+        ).then((selectedTime) {
+          if (selectedTime != null) {
+            final reminderDateTime = DateTime(
+              selectedDate.year,
+              selectedDate.month,
+              selectedDate.day,
+              selectedTime.hour,
+              selectedTime.minute,
+            );
+
+            final updatedTask = task.copyWith(reminderTime: reminderDateTime);
+            context
+                .read<TodoBloc>()
+                .add(UpdateTask(todoId: todoId, task: updatedTask));
+          }
+        });
+      }
+    });
   }
 
   String _formatDate(DateTime date) {
@@ -476,5 +573,138 @@ class SingleTaskDetailPage extends StatelessWidget {
       default:
         return '';
     }
+  }
+
+  Widget _buildStepsList(BuildContext context, ThemeData theme, Task task) {
+    return Column(
+      children: [
+        if (task.steps.isNotEmpty)
+          Padding(
+            padding:
+                const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0, bottom: 8.0),
+                  child: Text(
+                    'Steps',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: theme.colorScheme.onSurface.withOpacity(0.8),
+                    ),
+                  ),
+                ),
+                ...task.steps.map(
+                    (step) => _buildStepItem(context, theme, task.id, step)),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildStepItem(
+      BuildContext context, ThemeData theme, String taskId, TaskStep step) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        children: [
+          InkWell(
+            onTap: () {
+              context.read<TodoBloc>().add(
+                    CompleteTaskStep(
+                      todoId: todoId,
+                      taskId: taskId,
+                      stepId: step.id,
+                      isCompleted: !step.isCompleted,
+                    ),
+                  );
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: step.isCompleted
+                    ? theme.colorScheme.primary.withOpacity(0.2)
+                    : theme.colorScheme.surface,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: step.isCompleted
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurface.withOpacity(0.3),
+                  width: 1.5,
+                ),
+              ),
+              child: step.isCompleted
+                  ? Icon(
+                      Icons.check,
+                      size: 16,
+                      color: theme.colorScheme.primary,
+                    )
+                  : null,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              step.description,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: step.isCompleted
+                    ? theme.colorScheme.onSurface.withOpacity(0.6)
+                    : theme.colorScheme.onSurface,
+                decoration: step.isCompleted
+                    ? TextDecoration.lineThrough
+                    : TextDecoration.none,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.delete_outline,
+              size: 18,
+              color: theme.colorScheme.onSurface.withOpacity(0.5),
+            ),
+            onPressed: () {
+              // Show confirmation dialog
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Delete Step'),
+                  content:
+                      const Text('Are you sure you want to delete this step?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        // Add a DeleteTaskStep event
+                        context.read<TodoBloc>().add(
+                              DeleteTaskStep(
+                                todoId: todoId,
+                                taskId: taskId,
+                                stepId: step.id,
+                              ),
+                            );
+                        Navigator.pop(context);
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: theme.colorScheme.error,
+                      ),
+                      child: const Text('Delete'),
+                    ),
+                  ],
+                ),
+              );
+            },
+            constraints: const BoxConstraints(),
+            padding: EdgeInsets.zero,
+          ),
+        ],
+      ),
+    );
   }
 }
