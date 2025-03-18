@@ -352,34 +352,34 @@ class SingleTaskDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildNoteSection(BuildContext context, ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: InkWell(
-        onTap: () {
-          // Open note editor
-        },
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
-            ),
-          ),
-          child: Text(
-            'Add Note',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _buildNoteSection(BuildContext context, ThemeData theme) {
+  //   return Padding(
+  //     padding: const EdgeInsets.all(20.0),
+  //     child: InkWell(
+  //       onTap: () {
+  //         // Open note editor
+  //       },
+  //       borderRadius: BorderRadius.circular(8),
+  //       child: Container(
+  //         width: double.infinity,
+  //         padding: const EdgeInsets.all(16),
+  //         decoration: BoxDecoration(
+  //           color: theme.colorScheme.surface,
+  //           borderRadius: BorderRadius.circular(8),
+  //           border: Border.all(
+  //             color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
+  //           ),
+  //         ),
+  //         child: Text(
+  //           'Add Note',
+  //           style: theme.textTheme.bodyMedium?.copyWith(
+  //             color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildBottomInfo(
       BuildContext context, ThemeData theme, dynamic task, dynamic todo) {
@@ -591,7 +591,7 @@ class SingleTaskDetailPage extends StatelessWidget {
                     'Steps',
                     style: theme.textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.w500,
-                      color: theme.colorScheme.onSurface.withOpacity(0.8),
+                      color: theme.colorScheme.onSurface.withValues(alpha:0.8),
                     ),
                   ),
                 ),
@@ -627,13 +627,13 @@ class SingleTaskDetailPage extends StatelessWidget {
               height: 24,
               decoration: BoxDecoration(
                 color: step.isCompleted
-                    ? theme.colorScheme.primary.withOpacity(0.2)
+                    ? theme.colorScheme.primary.withValues(alpha:0.2)
                     : theme.colorScheme.surface,
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: step.isCompleted
                       ? theme.colorScheme.primary
-                      : theme.colorScheme.onSurface.withOpacity(0.3),
+                      : theme.colorScheme.onSurface.withValues(alpha:0.3),
                   width: 1.5,
                 ),
               ),
@@ -652,7 +652,7 @@ class SingleTaskDetailPage extends StatelessWidget {
               step.description,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: step.isCompleted
-                    ? theme.colorScheme.onSurface.withOpacity(0.6)
+                    ? theme.colorScheme.onSurface.withValues(alpha:0.6)
                     : theme.colorScheme.onSurface,
                 decoration: step.isCompleted
                     ? TextDecoration.lineThrough
@@ -664,7 +664,7 @@ class SingleTaskDetailPage extends StatelessWidget {
             icon: Icon(
               Icons.delete_outline,
               size: 18,
-              color: theme.colorScheme.onSurface.withOpacity(0.5),
+              color: theme.colorScheme.onSurface.withValues(alpha:0.5),
             ),
             onPressed: () {
               // Show confirmation dialog

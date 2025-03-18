@@ -6,6 +6,9 @@ import 'dart:async';
 import 'package:lottie/lottie.dart';
 import 'package:todo_ai/domain/bloc/prompt_generator_bloc/prompt_generator_bloc.dart';
 import 'package:todo_ai/ui/shared_widgets/thinking_loader.dart';
+import 'package:todo_ai/domain/bloc/subscription_bloc/subscription_bloc.dart';
+import 'package:todo_ai/domain/model/subscription_model.dart';
+import 'package:todo_ai/domain/bloc/auth_bloc/auth_bloc.dart';
 
 import '../../../../domain/bloc/todo_bloc/todo_bloc.dart';
 import '../../../../domain/model/todo_model.dart';
@@ -137,6 +140,7 @@ class _AiTodoCardState extends State<AiTodoCard>
       _typingTimer?.cancel();
     });
 
+    // Using existing logic in PromptGeneratorBloc
     BlocProvider.of<PromptGeneratorBloc>(context)
         .add(GeneratePrompt(prompt: prompt));
   }
@@ -162,6 +166,71 @@ class _AiTodoCardState extends State<AiTodoCard>
         task.isAccepted = true;
       }
     });
+  }
+
+  void _initiateSubscription(SubscriptionPlan plan) {
+    // Access the blocs
+    final subscriptionBloc = context.read<SubscriptionBloc>();
+    final authBloc = context.read<AuthBloc>();
+
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    try {
+      // Get current user ID from AuthBloc directly
+      String? userId;
+      if (authBloc.state is AuthAuthenticatedState) {
+        userId = (authBloc.state as AuthAuthenticatedState).userId;
+      }
+
+      if (userId != null && userId.isNotEmpty) {
+        // Add the purchase event
+        subscriptionBloc.add(PurchaseSubscription(
+          userId: userId,
+          plan: plan,
+        ));
+
+        // Close loading dialog
+        Navigator.of(context).pop();
+
+        // Show a message that purchase is being processed
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Processing your subscription. Please wait...'),
+            backgroundColor: Colors.blue,
+          ),
+        );
+      } else {
+        // Close loading dialog
+        Navigator.of(context).pop();
+
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text('You need to be logged in to purchase a subscription.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog
+      Navigator.of(context).pop();
+
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -343,6 +412,15 @@ class _AiTodoCardState extends State<AiTodoCard>
                             return const ThinkingLoader();
                           }
 
+                          if (state is PromptSubscriptionRequiredState) {
+                            return _buildSubscriptionRequiredUI(
+                              context,
+                              state,
+                              textColor,
+                              accentColor,
+                            );
+                          }
+
                           if (_tasks.isEmpty) {
                             return Center(
                               child: Text(
@@ -464,6 +542,174 @@ class _AiTodoCardState extends State<AiTodoCard>
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildSubscriptionRequiredUI(
+    BuildContext context,
+    PromptSubscriptionRequiredState state,
+    Color textColor,
+    Color accentColor,
+  ) {
+    // Get plan name and price based on the plan
+    String planName = "";
+    double planPrice = 0.0;
+
+    switch (state.plan) {
+      case SubscriptionPlan.monthly:
+        planName = "Monthly Pro";
+        planPrice = 4.99;
+        break;
+      case SubscriptionPlan.annual:
+        planName = "Annual Pro";
+        planPrice = 49.99;
+        break;
+      default:
+        planName = "Pro Plan";
+        planPrice = 4.99;
+    }
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Premium icon or illustration
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.amber.withOpacity(0.2),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            Icons.workspace_premium,
+            color: Colors.amber,
+            size: 50,
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Subscription message
+        Text(
+          "AI Task Generation Limit Reached",
+          style: TextStyle(
+            color: textColor,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 12),
+
+        // Display the message from the state
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            state.message,
+            style: TextStyle(
+              color: textColor.withOpacity(0.8),
+              fontSize: 14,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // Subscription features
+        _buildPlanFeature(
+          icon: Icons.check_circle,
+          text: "Unlimited AI task generation",
+          textColor: textColor,
+        ),
+        _buildPlanFeature(
+          icon: Icons.check_circle,
+          text: "Advanced task suggestions",
+          textColor: textColor,
+        ),
+        _buildPlanFeature(
+          icon: Icons.check_circle,
+          text: "Priority support",
+          textColor: textColor,
+        ),
+        const SizedBox(height: 24),
+
+        // Price display
+        Text(
+          "Upgrade to $planName for just \$${planPrice.toStringAsFixed(2)}/${state.plan == SubscriptionPlan.annual ? 'year' : 'month'}",
+          style: TextStyle(
+            color: Colors.amber,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 24),
+
+        // Subscription button
+        Container(
+          width: double.infinity,
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          child: ElevatedButton(
+            onPressed: () => _initiateSubscription(state.plan),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: accentColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 4,
+            ),
+            child: const Text(
+              "Upgrade Now",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Maybe later button
+        TextButton(
+          onPressed: _toggleExpanded,
+          child: Text(
+            "Maybe Later",
+            style: TextStyle(
+              color: textColor.withOpacity(0.7),
+              fontSize: 14,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPlanFeature({
+    required IconData icon,
+    required String text,
+    required Color textColor,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: Colors.amber,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: textColor.withOpacity(0.9),
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

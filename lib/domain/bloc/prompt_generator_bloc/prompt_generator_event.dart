@@ -7,8 +7,14 @@ sealed class PromptGeneratorEvent extends Equatable {
   List<Object> get props => [];
 }
 
-final class GeneratePrompt extends PromptGeneratorEvent {
+class GeneratePrompt extends PromptGeneratorEvent {
   final String prompt;
 
-  const GeneratePrompt({required this.prompt});
+  
+  const GeneratePrompt({
+    required this.prompt,
+  });
+  
+  @override
+  List<Object> get props => [prompt];
 }

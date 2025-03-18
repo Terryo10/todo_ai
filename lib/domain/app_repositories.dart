@@ -26,15 +26,16 @@ class AppRepositories extends StatelessWidget {
   final FirebaseFirestore firestore;
   final Box<Todo> todoBox;
 
-  const AppRepositories(
-      {super.key,
-      required this.appBlocs,
-      required this.storage,
-      required this.firebaseAuth,
-      required this.googleSignIn,
-      required this.facebookAuth,
-      required this.firestore,
-      required this.todoBox});
+  const AppRepositories({
+    super.key,
+    required this.appBlocs,
+    required this.storage,
+    required this.firebaseAuth,
+    required this.googleSignIn,
+    required this.facebookAuth,
+    required this.firestore,
+    required this.todoBox,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -62,13 +63,13 @@ class AppRepositories extends StatelessWidget {
             connectivity: Connectivity(),
           ),
         ),
-         RepositoryProvider<InvitationService>(
+        RepositoryProvider<InvitationService>(
           create: (context) => InvitationService(
             firestore: firestore,
             auth: firebaseAuth,
           ),
         ),
-          RepositoryProvider<NotificationService>(
+        RepositoryProvider<NotificationService>(
           create: (context) => NotificationService(
             firestore: firestore,
             auth: firebaseAuth,

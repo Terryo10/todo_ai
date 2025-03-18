@@ -5,6 +5,7 @@ import 'package:todo_ai/domain/repositories/todo_repository/todo_provider.dart';
 import 'package:todo_ai/domain/repositories/todo_repository/todo_repository.dart';
 
 import 'bloc/settings_bloc/settings_bloc.dart';
+import 'bloc/subscription_bloc/subscription_bloc.dart';
 import 'bloc/theme_bloc/theme_bloc.dart';
 import 'bloc/todo_bloc/todo_bloc.dart';
 import 'repositories/auth_repository/auth_repository.dart';
@@ -16,6 +17,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'bloc/auth_bloc/auth_bloc.dart';
 import 'bloc/cache_bloc/cache_bloc.dart';
 import 'services/notification_service.dart';
+import 'services/subscription_service.dart';
 
 class AppBlocs extends StatelessWidget {
   final Widget app;
@@ -52,14 +54,22 @@ class AppBlocs extends StatelessWidget {
         ),
         BlocProvider(
           create: (context) => TodoBloc(
-            repository: RepositoryProvider.of<TodoRepository>(context),
-            authBloc: BlocProvider.of<AuthBloc>(context),
-            notificationService: RepositoryProvider.of<NotificationService>(context)
-          )..add(LoadTodos()),
+              repository: RepositoryProvider.of<TodoRepository>(context),
+              authBloc: BlocProvider.of<AuthBloc>(context),
+              notificationService:
+                  RepositoryProvider.of<NotificationService>(context))
+            ..add(LoadTodos()),
+        ),
+        BlocProvider(
+          create: (context) => SubscriptionBloc(
+            subscriptionService: SubscriptionService(firestore: firestore),
+          ),
         ),
         BlocProvider(
           create: (context) => PromptGeneratorBloc(
+            BlocProvider.of<AuthBloc>(context),
             todoProvider: TodoProvider(),
+            subscriptionBloc: BlocProvider.of<SubscriptionBloc>(context),
           ),
         ),
         BlocProvider(
