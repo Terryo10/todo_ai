@@ -16,9 +16,8 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: SingleTodoRoute.page, guards: [AuthGuard()]),
         AutoRoute(page: SettingsRoute.page, guards: [AuthGuard()]),
         AutoRoute(page: SingleTaskDetailRoute.page, guards: [AuthGuard()]),
-            AutoRoute(
-      path: '/join',
-      page: JoinTodoRoute.page, guards: [AuthGuard()]
-    ),
+        AutoRoute(page: SubscriptionRoute.page, guards: [AuthGuard()]),
+        AutoRoute(
+            path: '/join', page: JoinTodoRoute.page, guards: [AuthGuard()]),
       ];
 }

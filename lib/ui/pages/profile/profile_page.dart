@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:todo_ai/domain/bloc/edit_profile_bloc/edit_profile_bloc.dart';
-import 'package:todo_ai/domain/bloc/todo_bloc/todo_bloc.dart';
+import 'package:todo_ai/ui/pages/profile/profile_info_cards.dart';
 
 import '../../../domain/bloc/auth_bloc/auth_bloc.dart';
 import '../../../routes/router.gr.dart';
@@ -72,7 +72,7 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 24),
               _ActionButtons(),
               const SizedBox(height: 24),
-              const _ProfileInfoCards(),
+              ProfileInfoCards(),
               const SizedBox(height: 24),
             ],
           ),
@@ -240,100 +240,6 @@ class _ActionButtons extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _ProfileInfoCards extends StatelessWidget {
-  const _ProfileInfoCards();
-
-  @override
-  Widget build(BuildContext context) {
-    // Access the TodoBloc state here where context is available
-    final todoState = context.read<TodoBloc>().state;
-    String usersTodos = '0';
-
-    if (todoState is TodoLoaded) {
-      // Set usersTodos based on loaded state
-      usersTodos = todoState.todos.length.toString();
-    }
-
-    // Create the items list here with the dynamic data
-    final List<ProfileInfoItem> items = [
-      const ProfileInfoItem("Account Type", 'Free', Icons.person),
-      ProfileInfoItem("Todos", usersTodos, Icons.check_circle),
-      const ProfileInfoItem("Collaborators", '0', Icons.people),
-    ];
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 0.8,
-        ),
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          return _InfoCard(items[index]);
-        },
-      ),
-    );
-  }
-}
-
-class _InfoCard extends StatelessWidget {
-  final ProfileInfoItem item;
-
-  const _InfoCard(this.item);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Card(
-      elevation: 4,
-      shadowColor: theme.colorScheme.shadow.withOpacity(0.3),
-      color: theme.colorScheme.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: theme.colorScheme.primary.withOpacity(0.2),
-          width: 1.0,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              item.icon,
-              size: 32,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              item.value.toString(),
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              item.title,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
