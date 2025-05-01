@@ -12,7 +12,9 @@ class SubscriptionService {
     FirebaseFirestore? firestore,
     RevenueCatService? revenueCatService,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _revenueCatService = revenueCatService ?? RevenueCatService(firestore: firestore ?? FirebaseFirestore.instance);
+        _revenueCatService = revenueCatService ??
+            RevenueCatService(
+                firestore: firestore ?? FirebaseFirestore.instance);
 
   // Collection reference
   CollectionReference<Map<String, dynamic>> get _subscriptions =>
@@ -20,12 +22,26 @@ class SubscriptionService {
 
   // Initialize RevenueCat
   Future<void> initialize(String userId) async {
-    await _revenueCatService.initialize(userId);
+    try {
+      // Initialize RevenueCat first and wait for it to complete
+      await _revenueCatService.initialize(userId);
+
+      // Log success
+      print('RevenueCat SDK initialized successfully');
+
+      // Load user's subscription details only after initialization
+      await getUserSubscription(userId);
+    } catch (e) {
+      print('Failed to initialize RevenueCat: $e');
+      // Handle initialization failure gracefully
+      // Maybe fall back to the free plan temporarily
+    }
   }
 
   // Fetch the user's current subscription
   Future<Subscription> getUserSubscription(String userId) async {
     try {
+      print('Fetching subscription for user bug son: $userId');
       final querySnapshot = await _subscriptions
           .where('userId', isEqualTo: userId)
           .where('isActive', isEqualTo: true)
@@ -44,6 +60,7 @@ class SubscriptionService {
       final subscription = Subscription.fromMap(subscriptionData);
 
       // Sync with RevenueCat to ensure it's up to date
+      print('Syncing subscription with RevenueCat');
       await _syncWithRevenueCat(userId, subscription);
 
       return subscription;
@@ -62,20 +79,24 @@ class SubscriptionService {
   }
 
   // Sync local subscription with RevenueCat
-  Future<Subscription> _syncWithRevenueCat(String userId, Subscription currentSubscription) async {
+  Future<Subscription> _syncWithRevenueCat(
+      //bug here
+
+      String userId,
+      Subscription currentSubscription) async {
     try {
       // Get current plan from RevenueCat
       final revenueCatPlan = await _revenueCatService.getSubscriptionPlan();
-      
+
       // If plans match, no need to update
       if (revenueCatPlan == currentSubscription.plan) {
         return currentSubscription;
       }
-      
+
       // Plans don't match, update subscription
       final now = DateTime.now();
       DateTime endDate;
-      
+
       if (revenueCatPlan == SubscriptionPlan.monthly) {
         endDate = now.add(const Duration(days: 31));
       } else if (revenueCatPlan == SubscriptionPlan.annual) {
@@ -84,7 +105,7 @@ class SubscriptionService {
         // Free plan
         endDate = now.add(const Duration(days: 3650)); // 10 years
       }
-      
+
       // Update subscription
       final updatedSubscription = currentSubscription.copyWith(
         plan: revenueCatPlan,
@@ -93,7 +114,7 @@ class SubscriptionService {
         aiTaskGenerationsRemaining: _getGenerationsForPlan(revenueCatPlan),
         maxCollaborators: _getCollaboratorsForPlan(revenueCatPlan),
       );
-      
+
       await _saveSubscription(updatedSubscription);
       return updatedSubscription;
     } catch (e) {
@@ -113,7 +134,7 @@ class SubscriptionService {
         return 500;
     }
   }
-  
+
   // Helper to get max collaborators based on plan
   int _getCollaboratorsForPlan(SubscriptionPlan plan) {
     switch (plan) {
@@ -194,27 +215,27 @@ class SubscriptionService {
     }
   }
 
-Future<List<Map<String, dynamic>>> getAvailablePackages() async {
-  try {
-    final packages = await _revenueCatService.getOfferings();
-    return packages.map((package) {
-      return {
-        'identifier': package.identifier,
-        // Use presentedOfferingContext instead of offering
-        'offeringId': package.presentedOfferingContext.offeringIdentifier,
-        // Use toString() for the enum value
-        'packageType': package.packageType.toString(),
-        'price': package.storeProduct.price,
-        'priceString': package.storeProduct.priceString,
-        'title': package.storeProduct.title,
-        'description': package.storeProduct.description,
-      };
-    }).toList();
-  } catch (e) {
-    print('Error getting available packages: $e');
-    return [];
+  Future<List<Map<String, dynamic>>> getAvailablePackages() async {
+    try {
+      final packages = await _revenueCatService.getOfferings();
+      return packages.map((package) {
+        return {
+          'identifier': package.identifier,
+          // Use presentedOfferingContext instead of offering
+          'offeringId': package.presentedOfferingContext.offeringIdentifier,
+          // Use toString() for the enum value
+          'packageType': package.packageType.toString(),
+          'price': package.storeProduct.price,
+          'priceString': package.storeProduct.priceString,
+          'title': package.storeProduct.title,
+          'description': package.storeProduct.description,
+        };
+      }).toList();
+    } catch (e) {
+      print('Error getting available packages: $e');
+      return [];
+    }
   }
-}
 
   // Purchase a subscription package
   Future<bool> purchasePackage(String packageIdentifier) async {
@@ -224,7 +245,7 @@ Future<List<Map<String, dynamic>>> getAvailablePackages() async {
         (p) => p.identifier == packageIdentifier,
         orElse: () => throw Exception('Package not found'),
       );
-      
+
       final result = await _revenueCatService.purchasePackage(package);
       return result != null;
     } catch (e) {

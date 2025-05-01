@@ -23,8 +23,6 @@ class RevenueCatService {
     if (_isInitialized) return;
 
     try {
-      // Set up with the appropriate API key for the platform
-      await Purchases.setLogLevel(LogLevel.debug);
 
       PurchasesConfiguration configuration;
       if (defaultTargetPlatform == TargetPlatform.android) {
@@ -38,6 +36,7 @@ class RevenueCatService {
       }
 
       await Purchases.configure(configuration);
+      await Purchases.setLogLevel(LogLevel.debug);
 
       // Setup purchaser info listener
       Purchases.addCustomerInfoUpdateListener((customerInfo) async {
