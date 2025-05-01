@@ -13,6 +13,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'repositories/auth_repository/auth_repository.dart';
 import 'repositories/cache_repository/cache_repository.dart';
+import 'repositories/notification_repository/notification_repository.dart';
 import 'repositories/todo_repository/todo_repository.dart';
 import 'services/invitation_service.dart';
 import 'services/notification_service.dart';
@@ -63,10 +64,18 @@ class AppRepositories extends StatelessWidget {
             connectivity: Connectivity(),
           ),
         ),
+        RepositoryProvider(
+          create: (context) => NotificationRepository(
+            firestore: firestore,
+            auth: firebaseAuth,
+          ),
+        ),
         RepositoryProvider<InvitationService>(
           create: (context) => InvitationService(
             firestore: firestore,
             auth: firebaseAuth,
+            // Use the NotificationRepository we just added
+            notificationRepository: context.read<NotificationRepository>(),
           ),
         ),
         RepositoryProvider<NotificationService>(

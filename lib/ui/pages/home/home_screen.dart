@@ -7,6 +7,7 @@ import '../../../domain/bloc/theme_bloc/theme_bloc.dart';
 import '../../../domain/bloc/todo_bloc/todo_bloc.dart';
 import '../../../domain/model/course.dart';
 import '../../../domain/model/todo_model.dart';
+import '../../shared_widgets/notifications_badge.dart';
 import '../todo/create_todo_dialog.dart';
 import '../todo/todo_search_filter_dialogue.dart';
 import 'components/ai_todo_card.dart';
@@ -264,6 +265,14 @@ class _HomePageState extends State<HomePage> {
                     builder: (context) => const TodoSearchFilterDialog(),
                   );
                 },
+              ),
+              CountBadge(
+                child: IconButton(
+                  icon: const Icon(Icons.notifications_outlined),
+                  onPressed: () {
+                    context.navigateTo(const NotificationsRoute());
+                  },
+                ),
               ),
               InkWell(
                 onTap: () {

@@ -6,14 +6,12 @@ import 'package:intl/intl.dart';
 
 import '../../../domain/bloc/todo_bloc/todo_bloc.dart';
 import '../../../domain/model/todo_model.dart';
-import '../../../domain/services/invitation_service.dart';
 import '../../../routes/router.gr.dart';
 import '../../../static/app_colors.dart';
 import 'add_task_dialogue.dart';
 import 'edit_todo_dialogue.dart';
 import 'widgets/assignee_chip.dart';
 import 'widgets/collaborators_dialogue.dart';
-import 'widgets/share_todo_button.dart';
 import 'widgets/task_asignment.dart';
 
 @RoutePage()
@@ -69,10 +67,7 @@ class _SingleTodoPageState extends State<SingleTodoPage> {
             ),
             actions: [
               // Add ShareTodoButton
-              ShareTodoButton(
-                  todoId: currentTodo.id,
-                  invitationService:
-                      RepositoryProvider.of<InvitationService>(context)),
+             
               IconButton(
                 icon:
                     Icon(Icons.edit_outlined, color: theme.colorScheme.primary),

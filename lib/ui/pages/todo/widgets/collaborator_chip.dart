@@ -1,13 +1,13 @@
+// lib/ui/pages/todo/widgets/collaborator_chip.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:share_plus/share_plus.dart';
 
-import '../../../../domain/services/invitation_service.dart';
+import 'todo_invitation_dialogue.dart';
 
 class CollaboratorList extends StatefulWidget {
   final String todoId;
+  final String todoName;
   final String ownerUid;
   final List<String> collaborators;
   final bool canManage;
@@ -16,6 +16,7 @@ class CollaboratorList extends StatefulWidget {
   const CollaboratorList({
     super.key,
     required this.todoId,
+    required this.todoName,
     required this.ownerUid,
     required this.collaborators,
     this.canManage = false,
@@ -147,117 +148,21 @@ class _CollaboratorListState extends State<CollaboratorList> {
     }
   }
 
+  // Updated invitation method to show dialog instead of linking
   Future<void> _showInviteDialog() async {
-    // Show a loading indicator
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(
-      const SnackBar(
-        content: Text('Generating invitation link...'),
-        duration: Duration(seconds: 1),
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => TodoInvitationDialog(
+        todoId: widget.todoId,
+        todoName: widget.todoName,
       ),
     );
 
-    try {
-      // Get the invitation service
-      final invitationService = InvitationService(
-        firestore: _firestore,
-        auth: _auth,
-      );
-
-      // Generate invitation code
-      final invitationCode =
-          await invitationService.createInvitation(widget.todoId);
-
-      // Create shareable link
-      final shareableLink =
-          invitationService.generateShareableLink(invitationCode);
-
-      // Show dialog with the link
-      if (mounted) {
-        await showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Invite Collaborators'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Share this link with others to collaborate on this Todo:',
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  // padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceVariant,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          shareableLink,
-                          style: TextStyle(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.copy),
-                        onPressed: () async {
-                          await Clipboard.setData(
-                              ClipboardData(text: shareableLink));
-                          if (context.mounted) {
-                            Navigator.of(context).pop();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Link copied to clipboard'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                          }
-                        },
-                        tooltip: 'Copy link',
-                        iconSize: 20,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('CLOSE'),
-              ),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.share),
-                label: const Text('SHARE'),
-                onPressed: () async {
-                  await Share.share(
-                    'Join this Todo on TodoAI: $shareableLink',
-                    subject: 'TodoAI Collaboration Invitation',
-                  );
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                  }
-                },
-              ),
-            ],
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text('Error creating invitation: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+    // Refresh the list if an invitation was sent
+    if (result == true) {
+      // We don't need to reload the collaborator list here
+      // as the invitation doesn't immediately add the user
+      // They'll appear after they accept the invitation
     }
   }
 

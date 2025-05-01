@@ -4,6 +4,7 @@ import 'package:todo_ai/domain/bloc/prompt_generator_bloc/prompt_generator_bloc.
 import 'package:todo_ai/domain/repositories/todo_repository/todo_provider.dart';
 import 'package:todo_ai/domain/repositories/todo_repository/todo_repository.dart';
 
+import 'bloc/notifications_bloc/notifications_bloc.dart';
 import 'bloc/settings_bloc/settings_bloc.dart';
 import 'bloc/subscription_bloc/subscription_bloc.dart';
 import 'bloc/theme_bloc/theme_bloc.dart';
@@ -16,6 +17,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'bloc/auth_bloc/auth_bloc.dart';
 import 'bloc/cache_bloc/cache_bloc.dart';
+import 'repositories/notification_repository/notification_repository.dart';
 import 'services/notification_service.dart';
 import 'services/subscription_service.dart';
 
@@ -82,6 +84,12 @@ class AppBlocs extends StatelessWidget {
             RepositoryProvider.of<AuthRepository>(context),
           ),
         ),
+             BlocProvider(
+        create: (context) => NotificationBloc(
+          repository: RepositoryProvider.of<NotificationRepository>(context),
+        )..add(LoadNotifications()),
+        lazy: false,
+      ),
       ],
       child: app,
     );
