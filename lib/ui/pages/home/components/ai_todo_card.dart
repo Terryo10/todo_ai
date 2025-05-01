@@ -298,7 +298,7 @@ class _AiTodoCardState extends State<AiTodoCard>
               padding: const EdgeInsets.all(16),
               width: MediaQuery.of(context).size.width * 0.95,
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.7,
+                maxHeight: MediaQuery.of(context).size.height * 0.71,
               ),
               decoration: BoxDecoration(
                 color: cardColor,
@@ -506,37 +506,47 @@ class _AiTodoCardState extends State<AiTodoCard>
                         },
                       ),
                     ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(Icons.thumb_up_outlined,
-                                    color: Colors.grey.shade500, size: 20),
-                                const SizedBox(width: 8),
-                                Icon(Icons.thumb_down_outlined,
-                                    color: Colors.grey.shade500, size: 20),
-                              ],
-                            ),
-                            TextButton(
-                              onPressed: _acceptAll,
-                              child: Text(
-                                "Accept all",
-                                style: TextStyle(
-                                    color: accentColor.withOpacity(0.9)),
+                    BlocBuilder<PromptGeneratorBloc, PromptGeneratorState>(
+                      builder: (context, state) {
+                        if (state is! PromptSubscriptionRequiredState) {
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(Icons.thumb_up_outlined,
+                                          color: Colors.grey.shade500,
+                                          size: 20),
+                                      const SizedBox(width: 8),
+                                      Icon(Icons.thumb_down_outlined,
+                                          color: Colors.grey.shade500,
+                                          size: 20),
+                                    ],
+                                  ),
+                                  TextButton(
+                                    onPressed: _acceptAll,
+                                    child: Text(
+                                      "Accept all",
+                                      style: TextStyle(
+                                          color: accentColor.withOpacity(0.9)),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
-                        ),
-                        if (_tasks.any((task) => task.isAccepted)) ...[
-                          const SizedBox(height: 8),
-                          _buildCreateTodoButton(accentColor, textColor),
-                        ],
-                      ],
+                              if (_tasks.any((task) => task.isAccepted)) ...[
+                                const SizedBox(height: 8),
+                                _buildCreateTodoButton(accentColor, textColor),
+                              ],
+                            ],
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
                     ),
                   ],
                 ],
@@ -575,7 +585,6 @@ class _AiTodoCardState extends State<AiTodoCard>
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Premium icon or illustration
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(

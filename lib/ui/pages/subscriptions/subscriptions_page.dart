@@ -16,7 +16,8 @@ class SubscriptionPage extends StatefulWidget {
 }
 
 class _SubscriptionPageState extends State<SubscriptionPage> {
-  final CarouselSliderController _carouselController = CarouselSliderController();
+  final CarouselSliderController _carouselController =
+      CarouselSliderController();
   int _currentBenefitIndex = 0;
   String? _selectedPackageId;
 
@@ -52,13 +53,17 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
     if (userId != null) {
       // Initialize RevenueCat
-      context.read<SubscriptionBloc>().add(InitializeRevenueCat(userId: userId));
-      
+      context
+          .read<SubscriptionBloc>()
+          .add(InitializeRevenueCat(userId: userId));
+
       // Load user's subscription details
       context.read<SubscriptionBloc>().add(LoadSubscription(userId: userId));
-      
+
       // Load available packages
-      context.read<SubscriptionBloc>().add(LoadAvailablePackages(userId: userId));
+      context
+          .read<SubscriptionBloc>()
+          .add(LoadAvailablePackages(userId: userId));
     }
   }
 
@@ -74,7 +79,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
         actions: [
           BlocBuilder<SubscriptionBloc, SubscriptionState>(
             builder: (context, state) {
-              if (state is SubscriptionLoaded && 
+              if (state is SubscriptionLoaded &&
                   state.subscription.plan != SubscriptionPlan.free) {
                 return IconButton(
                   icon: const Icon(Icons.refresh),
@@ -251,7 +256,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
     // Available packages
     List<Map<String, dynamic>> packages = [];
-    
+
     if (state is SubscriptionLoaded && state.availablePackages != null) {
       packages = state.availablePackages!;
     }
@@ -272,13 +277,14 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
         final isSelected = _selectedPackageId == package['identifier'];
         final isCurrent = state is SubscriptionLoaded &&
             ((state.subscription.plan == SubscriptionPlan.monthly &&
-                package['packageType'] == 'MONTHLY') ||
-            (state.subscription.plan == SubscriptionPlan.annual &&
-                package['packageType'] == 'ANNUAL'));
+                    package['packageType'] == 'MONTHLY') ||
+                (state.subscription.plan == SubscriptionPlan.annual &&
+                    package['packageType'] == 'ANNUAL'));
 
         return Card(
           elevation: isSelected ? 8 : 4,
-          shadowColor: theme.colorScheme.shadow.withOpacity(isSelected ? 0.5 : 0.3),
+          shadowColor:
+              theme.colorScheme.shadow.withOpacity(isSelected ? 0.5 : 0.3),
           margin: const EdgeInsets.only(bottom: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -354,7 +360,8 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: isSelected
-                            ? () => _purchasePackage(context, package['identifier'])
+                            ? () =>
+                                _purchasePackage(context, package['identifier'])
                             : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: colorScheme.primary,
@@ -400,7 +407,6 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       case SubscriptionPlan.annual:
         planName = 'Annual Premium';
         break;
-
     }
 
     // Only show end date for premium plans
@@ -477,14 +483,15 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
         : null;
 
     if (userId == null) {
-      _showErrorSnackBar(context, 'You need to be logged in to purchase a subscription');
+      _showErrorSnackBar(
+          context, 'You need to be logged in to purchase a subscription');
       return;
     }
 
     context.read<SubscriptionBloc>().add(PurchasePackage(
-      userId: userId,
-      packageIdentifier: packageId,
-    ));
+          userId: userId,
+          packageIdentifier: packageId,
+        ));
   }
 
   void _restorePurchases(BuildContext context) {
@@ -493,7 +500,8 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
         : null;
 
     if (userId == null) {
-      _showErrorSnackBar(context, 'You need to be logged in to restore purchases');
+      _showErrorSnackBar(
+          context, 'You need to be logged in to restore purchases');
       return;
     }
 

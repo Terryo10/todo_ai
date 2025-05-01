@@ -5,8 +5,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:todo_ai/domain/model/subscription_model.dart';
 
 class RevenueCatService {
-  static const String _apiKey =
-      'YOUR_API_KEY_HERE'; // Replace with your actual API key
+  final String _appleApiKey = 'appl_BfUrdAnxyPeJRYLvKePknHaOtst';
+  final String _androidApiKey = 'goog_zHvbsaUNepJYImXdcBihQdkQkqD';
+
   static const String _monthlyEntitlementId = 'premium_monthly';
   static const String _annualEntitlementId = 'premium_annual';
   static const String _entitlementIdentifier = 'premium';
@@ -27,9 +28,11 @@ class RevenueCatService {
 
       PurchasesConfiguration configuration;
       if (defaultTargetPlatform == TargetPlatform.android) {
-        configuration = PurchasesConfiguration(_apiKey)..appUserID = userId;
+        configuration = PurchasesConfiguration(_androidApiKey)
+          ..appUserID = userId;
       } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-        configuration = PurchasesConfiguration(_apiKey)..appUserID = userId;
+        configuration = PurchasesConfiguration(_appleApiKey)
+          ..appUserID = userId;
       } else {
         throw Exception('Unsupported platform');
       }
