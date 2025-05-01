@@ -23,17 +23,17 @@ class InvitationService {
         _notificationRepository = notificationRepository;
 
   // Collection references
-  CollectionReference get _invitationsCollection => 
+  CollectionReference get _invitationsCollection =>
       _firestore.collection('invitations');
-  
-  CollectionReference get _todosCollection => 
-      _firestore.collection('todos');
+
+  CollectionReference get _todosCollection => _firestore.collection('todos');
 
   // Generate a random 8-character invitation code
   String _generateInvitationCode() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final random = Random();
-    return List.generate(8, (index) => chars[random.nextInt(chars.length)]).join();
+    return List.generate(8, (index) => chars[random.nextInt(chars.length)])
+        .join();
   }
 
   // Create an invitation and send it as a notification
@@ -56,10 +56,11 @@ class InvitationService {
 
       final todoData = todoDoc.data() as Map<String, dynamic>;
       final todoName = todoData['name'] as String;
-      
+
       // Check if user is authorized to share this todo
-      if (todoData['uid'] != currentUserId && 
-          !(todoData['collaborators'] as List<dynamic>).contains(currentUserId)) {
+      if (todoData['uid'] != currentUserId &&
+          !(todoData['collaborators'] as List<dynamic>)
+              .contains(currentUserId)) {
         throw Exception('Not authorized to share this todo');
       }
 
@@ -75,22 +76,24 @@ class InvitationService {
       }
 
       final recipientId = userQuery.docs.first.id;
-      
+
       // Check if already a collaborator
       if ((todoData['collaborators'] as List<dynamic>).contains(recipientId) ||
           todoData['uid'] == recipientId) {
         throw Exception('User is already a collaborator');
       }
-      
+
       // Get inviter's display name
-      final inviterDoc = await _firestore.collection('users').doc(currentUserId).get();
-      final inviterName = inviterDoc.exists 
-          ? (inviterDoc.data() as Map<String, dynamic>)['displayName'] ?? 'Someone'
+      final inviterDoc =
+          await _firestore.collection('users').doc(currentUserId).get();
+      final inviterName = inviterDoc.exists
+          ? (inviterDoc.data() as Map<String, dynamic>)['displayName'] ??
+              'Someone'
           : 'Someone';
 
       // Generate invitation code
       final invitationCode = _generateInvitationCode();
-      
+
       // Create the invitation document
       await _invitationsCollection.doc(invitationCode).set({
         'code': invitationCode,
@@ -131,21 +134,37 @@ class InvitationService {
       }
 
       // Get the invitation
-      final invitationDoc = await _invitationsCollection.doc(invitationCode).get();
-      
+      final invitationDoc =
+          await _invitationsCollection.doc(invitationCode).get();
+
       if (!invitationDoc.exists) {
         throw Exception('Invitation not found');
       }
 
       final invitationData = invitationDoc.data() as Map<String, dynamic>;
-      
+
       // Check if invitation is active
       if (invitationData['isActive'] != true) {
+        // Additional diagnostics to help identify why it's inactive
+        if (invitationData.containsKey('acceptedAt')) {
+          throw Exception('This invitation has already been used');
+        } else if (invitationData.containsKey('declined') &&
+            invitationData['declined'] == true) {
+          throw Exception('This invitation was declined');
+        } else if (invitationData.containsKey('expiresAt')) {
+          final expiresAt = (invitationData['expiresAt'] as Timestamp).toDate();
+          if (DateTime.now().isAfter(expiresAt)) {
+            throw Exception('This invitation has expired');
+          }
+        }
+
+        // Default message if we can't determine why
         throw Exception('Invitation is no longer active');
       }
-      
+
       // Verify invitation is for this user
-      if (invitationData['recipientUid'] != currentUserId) {
+      if (invitationData.containsKey('recipientUid') &&
+          invitationData['recipientUid'] != currentUserId) {
         throw Exception('This invitation is not for you');
       }
 
@@ -165,7 +184,8 @@ class InvitationService {
       List<dynamic> collaborators = List.from(todoData['collaborators'] ?? []);
 
       // Check if user is already a collaborator
-      if (todoData['uid'] == currentUserId || collaborators.contains(currentUserId)) {
+      if (todoData['uid'] == currentUserId ||
+          collaborators.contains(currentUserId)) {
         return todoId; // User is already owner or collaborator
       }
 
@@ -174,7 +194,7 @@ class InvitationService {
       await _todosCollection.doc(todoId).update({
         'collaborators': collaborators,
       });
-      
+
       // Mark invitation as used
       await _invitationsCollection.doc(invitationCode).update({
         'isActive': false,
@@ -185,7 +205,8 @@ class InvitationService {
       await _notificationRepository.createNotification(
         userId: todoData['uid'],
         title: 'Invitation Accepted',
-        body: '${_auth.currentUser?.displayName ?? "Someone"} accepted your invitation to collaborate on "${todoData['name']}"',
+        body:
+            '${_auth.currentUser?.displayName ?? "Someone"} accepted your invitation to collaborate on "${todoData['name']}"',
         type: NotificationType.other,
         data: {
           'todoId': todoId,
@@ -209,14 +230,15 @@ class InvitationService {
       }
 
       // Get the invitation
-      final invitationDoc = await _invitationsCollection.doc(invitationCode).get();
-      
+      final invitationDoc =
+          await _invitationsCollection.doc(invitationCode).get();
+
       if (!invitationDoc.exists) {
         throw Exception('Invitation not found');
       }
 
       final invitationData = invitationDoc.data() as Map<String, dynamic>;
-      
+
       // Verify invitation is for this user
       if (invitationData['recipientUid'] != currentUserId) {
         throw Exception('This invitation is not for you');
@@ -232,11 +254,12 @@ class InvitationService {
       // Optional: Send notification to inviter
       final inviterId = invitationData['inviterUid'];
       final todoName = invitationData['todoName'];
-      
+
       await _notificationRepository.createNotification(
         userId: inviterId,
         title: 'Invitation Declined',
-        body: '${_auth.currentUser?.displayName ?? "Someone"} declined your invitation to collaborate on "$todoName"',
+        body:
+            '${_auth.currentUser?.displayName ?? "Someone"} declined your invitation to collaborate on "$todoName"',
         type: NotificationType.other,
         data: {
           'todoId': invitationData['todoId'],

@@ -7,6 +7,7 @@ import 'package:todo_ai/domain/services/invitation_service.dart';
 import 'package:todo_ai/routes/router.gr.dart';
 
 import '../../../domain/bloc/notifications_bloc/notifications_bloc.dart';
+import '../../../domain/bloc/todo_bloc/todo_bloc.dart';
 import '../../../domain/model/notifications_model.dart';
 
 @RoutePage()
@@ -237,6 +238,16 @@ class NotificationsPage extends StatelessWidget {
 
   void _handleInvitationNotification(
       BuildContext context, NotificationModel notification) {
+    if (!notification.data.containsKey('invitationCode')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid invitation data'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -293,12 +304,14 @@ class NotificationsPage extends StatelessWidget {
               Navigator.of(context).pop();
 
               // Show loading
-              showDialog(
+              final loadingDialogContext = await showDialog<BuildContext>(
                 context: context,
                 barrierDismissible: false,
-                builder: (context) => const Center(
-                  child: CircularProgressIndicator(),
-                ),
+                builder: (dialogContext) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                },
               );
 
               // Accept invitation
@@ -309,8 +322,11 @@ class NotificationsPage extends StatelessWidget {
                 );
 
                 if (context.mounted) {
-                  // Close loading dialog
-                  Navigator.of(context).pop();
+                  // Close loading dialog if it's open
+                  if (loadingDialogContext != null &&
+                      Navigator.canPop(loadingDialogContext)) {
+                    Navigator.of(loadingDialogContext).pop();
+                  }
 
                   // Show success message
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -320,19 +336,38 @@ class NotificationsPage extends StatelessWidget {
                     ),
                   );
 
-                  // Navigate to the todo
-                  // context.navigateTo(SingleTodoRoute(todoId: todoId));
+                  // Refresh the todo list
+                  context.read<TodoBloc>().add(LoadTodos());
+
+                  // Give time for todos to load
+                  await Future.delayed(const Duration(milliseconds: 300));
+
+                  // Navigate to the home screen
+                  context.router.pushNamed('/');
                 }
               } catch (e) {
                 if (context.mounted) {
-                  // Close loading dialog
-                  Navigator.of(context).pop();
+                  // Close loading dialog if it's open
+                  if (loadingDialogContext != null &&
+                      Navigator.canPop(loadingDialogContext)) {
+                    Navigator.of(loadingDialogContext).pop();
+                  }
 
-                  // Show error message
+                  // Show error message with specific instructions based on the error
+                  String errorMessage = e.toString();
+                  String actionText = '';
+
+                  if (errorMessage.contains('already been used')) {
+                    actionText = 'The todo should appear in your list.';
+                  } else if (errorMessage.contains('expired')) {
+                    actionText = 'Please ask for a new invitation.';
+                  }
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Error: ${e.toString()}'),
+                      content: Text('${errorMessage}. $actionText'),
                       backgroundColor: Colors.red,
+                      duration: const Duration(seconds: 5),
                     ),
                   );
                 }

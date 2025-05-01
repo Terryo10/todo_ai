@@ -27,20 +27,35 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     on<UnreadCountUpdated>(_onUnreadCountUpdated);
   }
 
+// In lib/domain/bloc/notifications_bloc/notifications_bloc.dart
+
   void _onLoadNotifications(
-      LoadNotifications event, Emitter<NotificationState> emit) {
+      LoadNotifications event, Emitter<NotificationState> emit) async {
     emit(NotificationsLoading());
 
+    // Cancel any existing subscriptions
     _notificationsSubscription?.cancel();
     _unreadCountSubscription?.cancel();
 
-    _notificationsSubscription = _repository.getNotifications().listen(
-          (notifications) => add(NotificationsUpdated(notifications)),
-        );
+    try {
+      // Get initial data immediately
+      final initialNotifications = await _repository.getNotificationsOnce();
+      emit(NotificationsLoaded(
+        notifications: initialNotifications,
+        unreadCount: initialNotifications.where((n) => !n.isRead).length,
+      ));
 
-    _unreadCountSubscription = _repository.getUnreadCount().listen(
-          (count) => add(UnreadCountUpdated(count)),
-        );
+      // Then set up subscriptions for real-time updates
+      _notificationsSubscription = _repository.getNotifications().listen(
+            (notifications) => add(NotificationsUpdated(notifications)),
+          );
+
+      _unreadCountSubscription = _repository.getUnreadCount().listen(
+            (count) => add(UnreadCountUpdated(count)),
+          );
+    } catch (e) {
+      emit(NotificationsError(e.toString()));
+    }
   }
 
   void _onNotificationsUpdated(
