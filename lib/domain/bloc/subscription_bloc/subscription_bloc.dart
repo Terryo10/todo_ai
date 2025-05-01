@@ -14,11 +14,24 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   })  : _subscriptionService = subscriptionService,
         super(SubscriptionInitial()) {
     on<LoadSubscription>(_onLoadSubscription);
-    on<PurchaseSubscription>(_onPurchaseSubscription);
-    on<CancelSubscription>(_onCancelSubscription);
+    on<PurchasePackage>(_onPurchasePackage);
+    on<RestorePurchases>(_onRestorePurchases);
     on<CheckAiGenerationAvailability>(_onCheckAiGenerationAvailability);
     on<CheckCollaboratorAvailability>(_onCheckCollaboratorAvailability);
     on<UpdateAiUsage>(_onUpdateAiUsage);
+    on<InitializeRevenueCat>(_onInitializeRevenueCat);
+    on<LoadAvailablePackages>(_onLoadAvailablePackages);
+  }
+
+  Future<void> _onInitializeRevenueCat(
+    InitializeRevenueCat event,
+    Emitter<SubscriptionState> emit,
+  ) async {
+    try {
+      await _subscriptionService.initialize(event.userId);
+    } catch (e) {
+      emit(SubscriptionError(message: e.toString()));
+    }
   }
 
   Future<void> _onLoadSubscription(
@@ -31,52 +44,74 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       final subscription = await _subscriptionService.getUserSubscription(
         event.userId,
       );
-      print('loading subsctiption kkkkkk');
+      
       emit(SubscriptionLoaded(subscription: subscription));
     } catch (e) {
       emit(SubscriptionError(message: e.toString()));
     }
   }
 
-  Future<void> _onPurchaseSubscription(
-    PurchaseSubscription event,
+  Future<void> _onLoadAvailablePackages(
+    LoadAvailablePackages event,
     Emitter<SubscriptionState> emit,
   ) async {
     try {
-      emit(SubscriptionProcessing());
+      emit(SubscriptionLoading());
 
-      await _subscriptionService.purchaseSubscription(
-        event.userId,
-        event.plan,
-      );
-
-      // Note: The actual subscription update will happen when the
-      // purchase is completed via the InAppPurchase plugin's listener.
-      // This is a simplified version.
-
-      emit(SubscriptionPurchaseInitiated());
+      final packages = await _subscriptionService.getAvailablePackages();
+      
+      if (state is SubscriptionLoaded) {
+        final currentState = state as SubscriptionLoaded;
+        emit(currentState.copyWith(availablePackages: packages));
+      } else {
+        final subscription = await _subscriptionService.getUserSubscription(
+          event.userId,
+        );
+        emit(SubscriptionLoaded(
+          subscription: subscription,
+          availablePackages: packages,
+        ));
+      }
     } catch (e) {
       emit(SubscriptionError(message: e.toString()));
     }
   }
 
-  Future<void> _onCancelSubscription(
-    CancelSubscription event,
+  Future<void> _onPurchasePackage(
+    PurchasePackage event,
     Emitter<SubscriptionState> emit,
   ) async {
     try {
       emit(SubscriptionProcessing());
 
-      await _subscriptionService.cancelSubscription(
-        event.userId,
-        event.subscriptionId,
+      final success = await _subscriptionService.purchasePackage(
+        event.packageIdentifier,
       );
 
-      final freeSubscription = await _subscriptionService.getUserSubscription(
-        event.userId,
-      );
+      if (success) {
+        add(LoadSubscription(userId: event.userId));
+      } else {
+        emit(SubscriptionPurchaseError(message: 'Purchase failed'));
+      }
+    } catch (e) {
+      emit(SubscriptionError(message: e.toString()));
+    }
+  }
 
-      emit(SubscriptionLoaded(subscription: freeSubscription));
+  Future<void> _onRestorePurchases(
+    RestorePurchases event,
+    Emitter<SubscriptionState> emit,
+  ) async {
+    try {
+      emit(SubscriptionProcessing());
+
+      final success = await _subscriptionService.restorePurchases();
+
+      if (success) {
+        add(LoadSubscription(userId: event.userId));
+      } else {
+        emit(SubscriptionPurchaseError(message: 'Restore failed'));
+      }
     } catch (e) {
       emit(SubscriptionError(message: e.toString()));
     }

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,10 +16,9 @@ class SubscriptionPage extends StatefulWidget {
 }
 
 class _SubscriptionPageState extends State<SubscriptionPage> {
-  final CarouselSliderController _carouselController =
-      CarouselSliderController();
+  final CarouselSliderController _carouselController = CarouselSliderController();
   int _currentBenefitIndex = 0;
-  bool _isYearlySelected = false;
+  String? _selectedPackageId;
 
   // Defined benefit items for the carousel
   final List<SubscriptionBenefit> _benefits = [
@@ -47,13 +45,20 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   void initState() {
     super.initState();
 
-    // Load user's subscription details
+    // Get user ID from auth bloc
     final userId = context.read<AuthBloc>().state is AuthAuthenticatedState
         ? (context.read<AuthBloc>().state as AuthAuthenticatedState).userId
         : null;
 
     if (userId != null) {
+      // Initialize RevenueCat
+      context.read<SubscriptionBloc>().add(InitializeRevenueCat(userId: userId));
+      
+      // Load user's subscription details
       context.read<SubscriptionBloc>().add(LoadSubscription(userId: userId));
+      
+      // Load available packages
+      context.read<SubscriptionBloc>().add(LoadAvailablePackages(userId: userId));
     }
   }
 
@@ -66,6 +71,21 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       appBar: AppBar(
         title: const Text('Subscription'),
         elevation: 0,
+        actions: [
+          BlocBuilder<SubscriptionBloc, SubscriptionState>(
+            builder: (context, state) {
+              if (state is SubscriptionLoaded && 
+                  state.subscription.plan != SubscriptionPlan.free) {
+                return IconButton(
+                  icon: const Icon(Icons.refresh),
+                  tooltip: 'Restore Purchases',
+                  onPressed: () => _restorePurchases(context),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+        ],
       ),
       body: BlocBuilder<SubscriptionBloc, SubscriptionState>(
         builder: (context, state) {
@@ -96,8 +116,8 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
                   const SizedBox(height: 32),
 
-                  // Subscription Plans
-                  _buildSubscriptionPlans(context, state),
+                  // Subscription Packages
+                  _buildSubscriptionPackages(context, state),
 
                   const SizedBox(height: 24),
 
@@ -154,7 +174,6 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       carouselController: _carouselController,
       itemCount: _benefits.length,
       options: CarouselOptions(
-        // height: 200, // Reduced height
         viewportFraction: 0.9,
         enlargeCenterPage: true,
         onPageChanged: (index, reason) {
@@ -224,221 +243,143 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     );
   }
 
-  Widget _buildSubscriptionPlans(
+  Widget _buildSubscriptionPackages(
       BuildContext context, SubscriptionState state) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    // Toggle between monthly and yearly billing
-    Widget billingToggle = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-          color: colorScheme.primary.withOpacity(0.3),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _PlanToggleButton(
-            text: 'Monthly',
-            isSelected: !_isYearlySelected,
-            onTap: () => setState(() => _isYearlySelected = false),
-          ),
-          const SizedBox(width: 8),
-          _PlanToggleButton(
-            text: 'Yearly',
-            isSelected: _isYearlySelected,
-            onTap: () => setState(() => _isYearlySelected = true),
-          ),
-        ],
-      ),
-    );
-
-    // Show current pricing based on selection
-    final monthlyPrice = 4.99;
-    final yearlyPrice = 49.99;
-    final currentPrice = _isYearlySelected ? yearlyPrice : monthlyPrice;
-    final savePercentage =
-        ((monthlyPrice * 12 - yearlyPrice) / (monthlyPrice * 12) * 100).round();
-
-    return ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.7,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Toggle
-            billingToggle,
-
-            const SizedBox(height: 8),
-
-            // Savings label for yearly plan
-            if (_isYearlySelected)
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: colorScheme.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  'Save $savePercentage%',
-                  style: textTheme.labelMedium?.copyWith(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-
-            const SizedBox(height: 24),
-
-            // Premium plan card
-            Card(
-              elevation: 8,
-              shadowColor: theme.colorScheme.shadow.withOpacity(0.5),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-                side: BorderSide(
-                  color: colorScheme.primary,
-                  width: 2,
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  children: [
-                    Text(
-                      'Premium',
-                      style: textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: '\$${currentPrice.toStringAsFixed(2)}',
-                            style: textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                          TextSpan(
-                            text: _isYearlySelected ? '/year' : '/month',
-                            style: textTheme.bodyLarge?.copyWith(
-                              color: colorScheme.onSurface.withOpacity(0.7),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Features list
-                    ..._buildFeaturesList(context),
-
-                    const SizedBox(height: 24),
-
-                    // Subscribe button
-                    _buildSubscribeButton(context, state),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ));
-  }
-
-  List<Widget> _buildFeaturesList(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
-
-    final features = [
-      'Unlimited task collaborators',
-      _isYearlySelected
-          ? '500 AI task generations/month'
-          : '100 AI task generations/month',
-      'Task assignment',
-      'Priority support',
-      'Advanced analytics'
-    ];
-
-    return features.map((feature) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 12.0),
-        child: Row(
-          children: [
-            Icon(
-              Icons.check_circle_rounded,
-              color: colorScheme.primary,
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                feature,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }).toList();
-  }
-
-  Widget _buildSubscribeButton(BuildContext context, SubscriptionState state) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final userId = context.read<AuthBloc>().state is AuthAuthenticatedState
-        ? (context.read<AuthBloc>().state as AuthAuthenticatedState).userId
-        : '';
-
-    bool isCurrentPlan = false;
-    if (state is SubscriptionLoaded) {
-      isCurrentPlan = _isYearlySelected
-          ? state.subscription.plan == SubscriptionPlan.annual
-          : state.subscription.plan == SubscriptionPlan.monthly;
+    // Available packages
+    List<Map<String, dynamic>> packages = [];
+    
+    if (state is SubscriptionLoaded && state.availablePackages != null) {
+      packages = state.availablePackages!;
     }
 
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed:
-            isCurrentPlan ? null : () => _handleSubscription(context, userId),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+    // If no packages available yet, show loading
+    if (packages.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: packages.length,
+      itemBuilder: (context, index) {
+        final package = packages[index];
+        final isSelected = _selectedPackageId == package['identifier'];
+        final isCurrent = state is SubscriptionLoaded &&
+            ((state.subscription.plan == SubscriptionPlan.monthly &&
+                package['packageType'] == 'MONTHLY') ||
+            (state.subscription.plan == SubscriptionPlan.annual &&
+                package['packageType'] == 'ANNUAL'));
+
+        return Card(
+          elevation: isSelected ? 8 : 4,
+          shadowColor: theme.colorScheme.shadow.withOpacity(isSelected ? 0.5 : 0.3),
+          margin: const EdgeInsets.only(bottom: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
+            side: BorderSide(
+              color: isSelected || isCurrent
+                  ? colorScheme.primary
+                  : Colors.transparent,
+              width: 2,
+            ),
           ),
-          elevation: 2,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Platform.isIOS ? Icons.apple : Icons.account_balance_wallet),
-            const SizedBox(width: 8),
-            Text(
-              isCurrentPlan ? 'Current Plan' : 'Subscribe Now',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onPrimary,
+          child: InkWell(
+            onTap: isCurrent
+                ? null
+                : () {
+                    setState(() {
+                      _selectedPackageId = package['identifier'];
+                    });
+                  },
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        package['title'] ?? 'Premium Subscription',
+                        style: textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      if (isCurrent)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Current Plan',
+                            style: textTheme.labelSmall?.copyWith(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    package['priceString'] ?? '\$0.00',
+                    style: textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    package['description'] ?? 'Premium subscription package',
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  if (!isCurrent)
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: isSelected
+                            ? () => _purchasePackage(context, package['identifier'])
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 2,
+                        ),
+                        child: Text(
+                          'Subscribe Now',
+                          style: textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onPrimary,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -524,89 +465,46 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                 color: colorScheme.onSurface.withOpacity(0.7),
               ),
             ),
-
-            // Cancel button for premium plans
-            if (subscription.plan != SubscriptionPlan.free)
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: TextButton(
-                  onPressed: () =>
-                      _handleCancelSubscription(context, subscription),
-                  style: TextButton.styleFrom(
-                    foregroundColor: colorScheme.error,
-                  ),
-                  child: const Text('Cancel Subscription'),
-                ),
-              ),
           ],
         ),
       ),
     );
   }
 
-  void _handleSubscription(BuildContext context, String userId) {
-    final plan =
-        _isYearlySelected ? SubscriptionPlan.annual : SubscriptionPlan.monthly;
+  void _purchasePackage(BuildContext context, String packageId) {
+    final userId = context.read<AuthBloc>().state is AuthAuthenticatedState
+        ? (context.read<AuthBloc>().state as AuthAuthenticatedState).userId
+        : null;
 
-    context.read<SubscriptionBloc>().add(
-          PurchaseSubscription(
-            userId: userId,
-            plan: plan,
-          ),
-        );
+    if (userId == null) {
+      _showErrorSnackBar(context, 'You need to be logged in to purchase a subscription');
+      return;
+    }
 
-    // Show processing dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const _ProcessingDialog(),
-    );
+    context.read<SubscriptionBloc>().add(PurchasePackage(
+      userId: userId,
+      packageIdentifier: packageId,
+    ));
   }
 
-  void _handleCancelSubscription(
-      BuildContext context, Subscription subscription) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cancel Subscription'),
-        content: const Text(
-          'Are you sure you want to cancel your premium subscription? You\'ll lose access to premium features when your current billing period ends.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('No, Keep it'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
+  void _restorePurchases(BuildContext context) {
+    final userId = context.read<AuthBloc>().state is AuthAuthenticatedState
+        ? (context.read<AuthBloc>().state as AuthAuthenticatedState).userId
+        : null;
 
-              final userId = context.read<AuthBloc>().state
-                      is AuthAuthenticatedState
-                  ? (context.read<AuthBloc>().state as AuthAuthenticatedState)
-                      .userId
-                  : '';
+    if (userId == null) {
+      _showErrorSnackBar(context, 'You need to be logged in to restore purchases');
+      return;
+    }
 
-              context.read<SubscriptionBloc>().add(
-                    CancelSubscription(
-                      userId: userId,
-                      subscriptionId: subscription.id,
-                    ),
-                  );
+    context.read<SubscriptionBloc>().add(RestorePurchases(userId: userId));
+  }
 
-              // Show processing dialog
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (context) => const _ProcessingDialog(),
-              );
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: const Text('Yes, Cancel'),
-          ),
-        ],
+  void _showErrorSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
       ),
     );
   }
@@ -623,72 +521,4 @@ class SubscriptionBenefit {
     required this.description,
     required this.icon,
   });
-}
-
-// Toggle button for plan selection
-class _PlanToggleButton extends StatelessWidget {
-  final String text;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _PlanToggleButton({
-    required this.text,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? theme.colorScheme.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: isSelected
-                ? theme.colorScheme.onPrimary
-                : theme.colorScheme.onSurface.withOpacity(0.7),
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// Dialog shown during processing of subscription
-class _ProcessingDialog extends StatelessWidget {
-  const _ProcessingDialog();
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 16),
-          const CircularProgressIndicator(),
-          const SizedBox(height: 24),
-          Text(
-            'Processing Payment',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Please wait while we process your subscription...',
-            style: Theme.of(context).textTheme.bodyMedium,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-        ],
-      ),
-    );
-  }
 }

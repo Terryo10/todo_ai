@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -5,6 +6,7 @@ import 'dart:async';
 
 import 'package:lottie/lottie.dart';
 import 'package:todo_ai/domain/bloc/prompt_generator_bloc/prompt_generator_bloc.dart';
+import 'package:todo_ai/routes/router.gr.dart';
 import 'package:todo_ai/ui/shared_widgets/thinking_loader.dart';
 import 'package:todo_ai/domain/bloc/subscription_bloc/subscription_bloc.dart';
 import 'package:todo_ai/domain/model/subscription_model.dart';
@@ -190,19 +192,19 @@ class _AiTodoCardState extends State<AiTodoCard>
       }
 
       if (userId != null && userId.isNotEmpty) {
-        // Add the purchase event
-        subscriptionBloc.add(PurchaseSubscription(
-          userId: userId,
-          plan: plan,
-        ));
+        // First, load available packages
+        subscriptionBloc.add(LoadAvailablePackages(userId: userId));
 
         // Close loading dialog
         Navigator.of(context).pop();
 
-        // Show a message that purchase is being processed
+        // Navigate to subscription page
+        context.navigateTo(const SubscriptionRoute());
+
+        // Show a message that redirecting to subscription page
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Processing your subscription. Please wait...'),
+            content: Text('Redirecting to subscription options...'),
             backgroundColor: Colors.blue,
           ),
         );

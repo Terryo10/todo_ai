@@ -7,6 +7,15 @@ abstract class SubscriptionEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+class InitializeRevenueCat extends SubscriptionEvent {
+  final String userId;
+  
+  const InitializeRevenueCat({required this.userId});
+  
+  @override
+  List<Object> get props => [userId];
+}
+
 class LoadSubscription extends SubscriptionEvent {
   final String userId;
   
@@ -16,45 +25,35 @@ class LoadSubscription extends SubscriptionEvent {
   List<Object> get props => [userId];
 }
 
-class PurchaseSubscription extends SubscriptionEvent {
+class LoadAvailablePackages extends SubscriptionEvent {
   final String userId;
-  final SubscriptionPlan plan;
   
-  const PurchaseSubscription({
-    required this.userId,
-    required this.plan,
-  });
+  const LoadAvailablePackages({required this.userId});
   
   @override
-  List<Object> get props => [userId, plan];
+  List<Object> get props => [userId];
 }
 
-class SubscriptionPurchaseCompleted extends SubscriptionEvent {
+class PurchasePackage extends SubscriptionEvent {
   final String userId;
-  final String purchaseId;
-  final SubscriptionPlan plan;
+  final String packageIdentifier;
   
-  const SubscriptionPurchaseCompleted({
+  const PurchasePackage({
     required this.userId,
-    required this.purchaseId,
-    required this.plan,
+    required this.packageIdentifier,
   });
   
   @override
-  List<Object> get props => [userId, purchaseId, plan];
+  List<Object> get props => [userId, packageIdentifier];
 }
 
-class CancelSubscription extends SubscriptionEvent {
+class RestorePurchases extends SubscriptionEvent {
   final String userId;
-  final String subscriptionId;
   
-  const CancelSubscription({
-    required this.userId, 
-    required this.subscriptionId,
-  });
+  const RestorePurchases({required this.userId});
   
   @override
-  List<Object> get props => [userId, subscriptionId];
+  List<Object> get props => [userId];
 }
 
 class CheckAiGenerationAvailability extends SubscriptionEvent {

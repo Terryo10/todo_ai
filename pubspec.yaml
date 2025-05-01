@@ -66,6 +66,7 @@ dependencies:
   in_app_purchase: ^3.2.1
   carousel_slider: ^5.0.0
   smooth_page_indicator: ^1.2.1
+  purchases_flutter: ^8.7.5
 
 
 dev_dependencies:

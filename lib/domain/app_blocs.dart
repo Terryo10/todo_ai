@@ -3,6 +3,7 @@ import 'package:todo_ai/domain/bloc/edit_profile_bloc/edit_profile_bloc.dart';
 import 'package:todo_ai/domain/bloc/prompt_generator_bloc/prompt_generator_bloc.dart';
 import 'package:todo_ai/domain/repositories/todo_repository/todo_provider.dart';
 import 'package:todo_ai/domain/repositories/todo_repository/todo_repository.dart';
+import 'package:todo_ai/domain/services/revenue_cat_service.dart';
 
 import 'bloc/notifications_bloc/notifications_bloc.dart';
 import 'bloc/settings_bloc/settings_bloc.dart';
@@ -33,6 +34,15 @@ class AppBlocs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Initialize RevenueCat service
+    final revenueCatService = RevenueCatService(firestore: firestore);
+    
+    // Updated subscription service with RevenueCat
+    final subscriptionService = SubscriptionService(
+      firestore: firestore,
+      revenueCatService: revenueCatService,
+    );
+    
     return MultiBlocProvider(
       providers: [
         BlocProvider<ThemeBloc>(
@@ -64,7 +74,7 @@ class AppBlocs extends StatelessWidget {
         ),
         BlocProvider(
           create: (context) => SubscriptionBloc(
-            subscriptionService: SubscriptionService(firestore: firestore),
+            subscriptionService: subscriptionService,
           ),
         ),
         BlocProvider(
@@ -84,12 +94,12 @@ class AppBlocs extends StatelessWidget {
             RepositoryProvider.of<AuthRepository>(context),
           ),
         ),
-             BlocProvider(
-        create: (context) => NotificationBloc(
-          repository: RepositoryProvider.of<NotificationRepository>(context),
-        )..add(LoadNotifications()),
-        lazy: false,
-      ),
+        BlocProvider(
+          create: (context) => NotificationBloc(
+            repository: RepositoryProvider.of<NotificationRepository>(context),
+          )..add(LoadNotifications()),
+          lazy: false,
+        ),
       ],
       child: app,
     );

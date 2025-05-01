@@ -1,37 +1,27 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
-// Import the purchase plugin (you'll need to add this to pubspec.yaml)
-import 'package:in_app_purchase/in_app_purchase.dart';
-
 import '../model/subscription_model.dart';
-
-class SubscriptionException implements Exception {
-  final String message;
-
-  SubscriptionException(this.message);
-
-  @override
-  String toString() => 'SubscriptionException: $message';
-}
+import 'revenue_cat_service.dart';
 
 class SubscriptionService {
   final FirebaseFirestore _firestore;
-  final InAppPurchase _inAppPurchase;
+  final RevenueCatService _revenueCatService;
   final _uuid = const Uuid();
 
   SubscriptionService({
     FirebaseFirestore? firestore,
-    InAppPurchase? inAppPurchase,
+    RevenueCatService? revenueCatService,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _inAppPurchase = inAppPurchase ?? InAppPurchase.instance;
+        _revenueCatService = revenueCatService ?? RevenueCatService(firestore: firestore ?? FirebaseFirestore.instance);
 
   // Collection reference
   CollectionReference<Map<String, dynamic>> get _subscriptions =>
       _firestore.collection('subscriptions');
 
-  // Product IDs for the subscription plans
-  static const String monthlyProductId = 'com.yourapp.subscription.monthly';
-  static const String annualProductId = 'com.yourapp.subscription.annual';
+  // Initialize RevenueCat
+  Future<void> initialize(String userId) async {
+    await _revenueCatService.initialize(userId);
+  }
 
   // Fetch the user's current subscription
   Future<Subscription> getUserSubscription(String userId) async {
@@ -43,40 +33,96 @@ class SubscriptionService {
           .limit(1)
           .get();
 
-
       if (querySnapshot.docs.isEmpty) {
         // Create a new free subscription if none exists
         final freeSubscription = Subscription.createFree(userId);
-        await saveSubscription(freeSubscription);
+        await _saveSubscription(freeSubscription);
         return freeSubscription;
       }
 
       final subscriptionData = querySnapshot.docs.first.data();
       final subscription = Subscription.fromMap(subscriptionData);
 
-      // Check if the subscription is expired but still marked as active
-      if (!subscription.isValid && subscription.isActive) {
-        // Deactivate the subscription if it's expired
-        await _subscriptions.doc(subscription.id).update({'isActive': false});
-
-        // Return a new free subscription
-        final freeSubscription = Subscription.createFree(userId);
-        await saveSubscription(freeSubscription);
-        return freeSubscription;
-      }
+      // Sync with RevenueCat to ensure it's up to date
+      await _syncWithRevenueCat(userId, subscription);
 
       return subscription;
     } catch (e) {
-      throw SubscriptionException('Failed to fetch subscription: $e');
+      throw Exception('Failed to fetch subscription: $e');
     }
   }
 
   // Save subscription to Firestore
-  Future<void> saveSubscription(Subscription subscription) async {
+  Future<void> _saveSubscription(Subscription subscription) async {
     try {
       await _subscriptions.doc(subscription.id).set(subscription.toMap());
     } catch (e) {
-      throw SubscriptionException('Failed to save subscription: $e');
+      throw Exception('Failed to save subscription: $e');
+    }
+  }
+
+  // Sync local subscription with RevenueCat
+  Future<Subscription> _syncWithRevenueCat(String userId, Subscription currentSubscription) async {
+    try {
+      // Get current plan from RevenueCat
+      final revenueCatPlan = await _revenueCatService.getSubscriptionPlan();
+      
+      // If plans match, no need to update
+      if (revenueCatPlan == currentSubscription.plan) {
+        return currentSubscription;
+      }
+      
+      // Plans don't match, update subscription
+      final now = DateTime.now();
+      DateTime endDate;
+      
+      if (revenueCatPlan == SubscriptionPlan.monthly) {
+        endDate = now.add(const Duration(days: 31));
+      } else if (revenueCatPlan == SubscriptionPlan.annual) {
+        endDate = now.add(const Duration(days: 366));
+      } else {
+        // Free plan
+        endDate = now.add(const Duration(days: 3650)); // 10 years
+      }
+      
+      // Update subscription
+      final updatedSubscription = currentSubscription.copyWith(
+        plan: revenueCatPlan,
+        startDate: now,
+        endDate: endDate,
+        aiTaskGenerationsRemaining: _getGenerationsForPlan(revenueCatPlan),
+        maxCollaborators: _getCollaboratorsForPlan(revenueCatPlan),
+      );
+      
+      await _saveSubscription(updatedSubscription);
+      return updatedSubscription;
+    } catch (e) {
+      print('Error syncing with RevenueCat: $e');
+      return currentSubscription;
+    }
+  }
+
+  // Helper to get generations based on plan
+  int _getGenerationsForPlan(SubscriptionPlan plan) {
+    switch (plan) {
+      case SubscriptionPlan.free:
+        return 5;
+      case SubscriptionPlan.monthly:
+        return 100;
+      case SubscriptionPlan.annual:
+        return 500;
+    }
+  }
+  
+  // Helper to get max collaborators based on plan
+  int _getCollaboratorsForPlan(SubscriptionPlan plan) {
+    switch (plan) {
+      case SubscriptionPlan.free:
+        return 1;
+      case SubscriptionPlan.monthly:
+        return 5;
+      case SubscriptionPlan.annual:
+        return 10;
     }
   }
 
@@ -97,13 +143,13 @@ class SubscriptionService {
           aiTaskGenerationsRemaining: remaining,
         );
 
-        await saveSubscription(updated);
+        await _saveSubscription(updated);
         return updated;
       }
 
       return subscription;
     } catch (e) {
-      throw SubscriptionException('Failed to update subscription usage: $e');
+      throw Exception('Failed to update subscription usage: $e');
     }
   }
 
@@ -118,10 +164,10 @@ class SubscriptionService {
           aiTaskGenerationsRemaining: subscription.maxGenerationsPerMonth,
         );
 
-        await saveSubscription(updated);
+        await _saveSubscription(updated);
       }
     } catch (e) {
-      throw SubscriptionException('Failed to reset monthly quota: $e');
+      throw Exception('Failed to reset monthly quota: $e');
     }
   }
 
@@ -129,12 +175,10 @@ class SubscriptionService {
   Future<bool> canUseAiGeneration(String userId) async {
     try {
       final subscription = await getUserSubscription(userId);
-      print(
-          'Subscription check: isValid=${subscription.isValid}, aiTaskGenerationsRemaining=${subscription.aiTaskGenerationsRemaining}');
       return subscription.isValid &&
           subscription.aiTaskGenerationsRemaining > 0;
     } catch (e) {
-      throw SubscriptionException('Failed to check AI usage eligibility: $e');
+      throw Exception('Failed to check AI usage eligibility: $e');
     }
   }
 
@@ -146,118 +190,57 @@ class SubscriptionService {
       return subscription.isValid &&
           currentCollaboratorsCount < subscription.maxCollaborators;
     } catch (e) {
-      throw SubscriptionException('Failed to check collaborator limit: $e');
+      throw Exception('Failed to check collaborator limit: $e');
     }
   }
 
-  // Start the subscription purchase flow
-  Future<void> purchaseSubscription(
-      String userId, SubscriptionPlan plan) async {
-    try {
-      // Determine the product ID based on the plan
-      final productId =
-          plan == SubscriptionPlan.monthly ? monthlyProductId : annualProductId;
-
-      // Check availability
-      final available = await _inAppPurchase.isAvailable();
-      if (!available) {
-        throw SubscriptionException('Store is not available');
-      }
-
-      // Load product details
-      final response = await _inAppPurchase.queryProductDetails({productId});
-      if (response.notFoundIDs.isNotEmpty) {
-        throw SubscriptionException('Product not found: $productId');
-      }
-
-      final products = response.productDetails;
-      if (products.isEmpty) {
-        throw SubscriptionException('No products available');
-      }
-
-      // Purchase
-      final purchaseParam = PurchaseParam(productDetails: products.first);
-      await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
-
-      // The purchase will be completed via a listener
-      // See the complete implementation for handling purchase updates
-    } catch (e) {
-      throw SubscriptionException('Failed to initiate purchase: $e');
-    }
+Future<List<Map<String, dynamic>>> getAvailablePackages() async {
+  try {
+    final packages = await _revenueCatService.getOfferings();
+    return packages.map((package) {
+      return {
+        'identifier': package.identifier,
+        // Use presentedOfferingContext instead of offering
+        'offeringId': package.presentedOfferingContext.offeringIdentifier,
+        // Use toString() for the enum value
+        'packageType': package.packageType.toString(),
+        'price': package.storeProduct.price,
+        'priceString': package.storeProduct.priceString,
+        'title': package.storeProduct.title,
+        'description': package.storeProduct.description,
+      };
+    }).toList();
+  } catch (e) {
+    print('Error getting available packages: $e');
+    return [];
   }
+}
 
-  // Process a successful purchase and update the subscription
-  Future<Subscription> processSuccessfulPurchase(
-      String userId, String purchaseId, SubscriptionPlan plan) async {
+  // Purchase a subscription package
+  Future<bool> purchasePackage(String packageIdentifier) async {
     try {
-      final now = DateTime.now();
-
-      // Calculate subscription end date
-      final endDate = plan == SubscriptionPlan.monthly
-          ? now.add(const Duration(days: 30))
-          : now.add(const Duration(days: 365));
-
-      // Set collaborators limit based on plan
-      final maxCollaborators = plan == SubscriptionPlan.free
-          ? 1
-          : plan == SubscriptionPlan.monthly
-              ? 5 // Monthly plan gets 5 collaborators
-              : 10; // Annual plan gets 10 collaborators
-
-      // Get max generations per month based on plan
-      final generations = plan == SubscriptionPlan.free
-          ? 5
-          : plan == SubscriptionPlan.monthly
-              ? 100
-              : 500; // Annual plan
-
-      // Create new subscription
-      final subscription = Subscription(
-        id: _uuid.v4(),
-        userId: userId,
-        plan: plan,
-        startDate: now,
-        endDate: endDate,
-        paymentId: purchaseId,
-        isActive: true,
-        aiTaskGenerationsRemaining: generations, // Use the value we calculated
-        maxCollaborators: maxCollaborators,
+      final packages = await _revenueCatService.getOfferings();
+      final package = packages.firstWhere(
+        (p) => p.identifier == packageIdentifier,
+        orElse: () => throw Exception('Package not found'),
       );
-
-      // Deactivate current subscription if exists
-      final currentSubscription = await getUserSubscription(userId);
-      if (currentSubscription.id.isNotEmpty &&
-          currentSubscription.plan != SubscriptionPlan.free) {
-        await _subscriptions
-            .doc(currentSubscription.id)
-            .update({'isActive': false});
-      }
-
-      // Save new subscription
-      await saveSubscription(subscription);
-
-      return subscription;
+      
+      final result = await _revenueCatService.purchasePackage(package);
+      return result != null;
     } catch (e) {
-      throw SubscriptionException('Failed to process purchase: $e');
+      print('Error purchasing package: $e');
+      return false;
     }
   }
 
-  // Cancel subscription
-  Future<void> cancelSubscription(String userId, String subscriptionId) async {
+  // Restore purchases
+  Future<bool> restorePurchases() async {
     try {
-      // Mark the subscription as inactive
-      await _subscriptions.doc(subscriptionId).update({
-        'isActive': false,
-      });
-
-      // Create a new free subscription
-      final freeSubscription = Subscription.createFree(userId);
-      await saveSubscription(freeSubscription);
-
-      // Note: In a real app, you would also handle the platform-specific
-      // cancellation through Google Play or App Store
+      final result = await _revenueCatService.restorePurchases();
+      return result != null;
     } catch (e) {
-      throw SubscriptionException('Failed to cancel subscription: $e');
+      print('Error restoring purchases: $e');
+      return false;
     }
   }
 }
